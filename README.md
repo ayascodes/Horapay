@@ -1,0 +1,5 @@
+requirement :
+```
+pip install django 
+pip install djangorestframework
+```
