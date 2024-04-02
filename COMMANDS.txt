@@ -1,0 +1,2 @@
+pytest      # to run all tests
+py manage.py spectacular --file schema.yml      # generate a schema.yml file that document all the end points of our api
