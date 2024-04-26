@@ -136,3 +136,8 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'Django API HoraPay',
     'VERSION': '1.0.0',
 }
+REST_FRAMEWORK_SPECtacular = { 
+    'SCHEMA': { 
+        'AUTO_SCHEMA': True,  # Enable automatic schema generation 
+    }, 
+}

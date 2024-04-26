@@ -61,7 +61,7 @@ class Report(models.Model):
     date_time = models.DateTimeField(auto_now_add=True)
     status_choices = [
         ('PENDING', 'Pending'),
-        ('APPROVED', 'Approved'),
+        ('x', 'Approved'),
         ('REJECTED', 'Rejected'),
     ]
     status = models.CharField(max_length=10, choices=status_choices, default='PENDING')
