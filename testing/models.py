@@ -8,13 +8,17 @@ class CustomUser(AbstractUser):
         ('female', 'Female'),
     ]
     GRADE_CHOICES = [
-        ('assistant master a','Assistant Master A'),
-        ('assistant master b','Assistant Master B'),
-        ('lecturer a','Lecturer A'),
-        ('lecturer b','Lecturer B'),
-        ('teacher','Teacher'),
-        ('professor','Professor'),
-    ]
+    ('assistant master a', 'Assistant Master A'),
+    ('assistant master b', 'Assistant Master B'),
+    ('lecteur a', 'Lecteur A'),
+    ('lecteur b', 'Lecteur B'),
+    ('enseignant', 'Enseignant'),
+    ('professeur', 'Professeur'),
+]
+    PAYMENT_CHOICES = [
+    ('rib', 'RIB'),
+    ('ccp clé', 'Ccp Clé'),
+]
     PHONE_NUMBER_REGEX = r'^0[567][0-9]{8}$'
     phone_number_validator = RegexValidator(
         regex=PHONE_NUMBER_REGEX,
@@ -28,7 +32,7 @@ class CustomUser(AbstractUser):
     grade = models.CharField(max_length=50, null = True ,blank=True , choices=GRADE_CHOICES) # needs more costumisaton
     date_of_birth = models.DateField(null=True)
     is_responsable = models.BooleanField(default=False)
-    RIP = models.CharField(max_length=10 ,null = True,unique=True) # IS UNNIIIIIIIIIQUE
+    payemnt_info = models.CharField(max_length=20 ,null = True,unique=True , choices=PAYMENT_CHOICES) # IS UNNIIIIIIIIIQUE
     phone_number = models.CharField(max_length=10,  null = True ,blank=True,validators=[phone_number_validator])
 
 
@@ -40,20 +44,6 @@ class CustomUser(AbstractUser):
         else:
             return f"{self.first_name} {self.last_name}"
 
-""" post ;
-{
-  "username": "lamia_gasmi",
-  "password": "azertyuiop",
-  "gender": "male",
-  "is_admin": false,
-  "is_recruited": false,
-  "grade": null,
-  "date_of_birth": "1990-01-01",
-  "is_responsable": false,
-  "RIP": null,
-  "phone_number": "0555555555"
-} """
-
 #error_consultation / rapport
 class Report(models.Model):
     sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE, limit_choices_to={'is_admin': False})  # Only teachers
@@ -61,7 +51,7 @@ class Report(models.Model):
     date_time = models.DateTimeField(auto_now_add=True)
     status_choices = [
         ('PENDING', 'Pending'),
-        ('x', 'Approved'),
+        ('APPROVED', 'Approved'),
         ('REJECTED', 'Rejected'),
     ]
     status = models.CharField(max_length=10, choices=status_choices, default='PENDING')
@@ -94,7 +84,7 @@ class JourFeries(Reason):
     pass
 
 class Absence(Reason):
-    pass
+    is_justified = models.BooleanField(default=False)
     
 """  creating instence : 
 exams_instance = Exams.objects.create(datedebut='2024-01-01', datefin='2024-01-05', description='Final exam') 
