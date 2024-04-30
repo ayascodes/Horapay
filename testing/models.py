@@ -19,13 +19,17 @@ class CustomUser(AbstractUser):
         ('Femme', 'Femme'),
     ]
     GRADE_CHOICES = [
-        ('assistant master a','Assistant Master A'),
-        ('assistant master b','Assistant Master B'),
-        ('lecturer a','Lecturer A'),
-        ('lecturer b','Lecturer B'),
-        ('teacher','Teacher'),
-        ('professor','Professor'),
-    ]
+    ('assistant master a', 'Assistant Master A'),
+    ('assistant master b', 'Assistant Master B'),
+    ('lecteur a', 'Lecteur A'),
+    ('lecteur b', 'Lecteur B'),
+    ('enseignant', 'Enseignant'),
+    ('professeur', 'Professeur'),
+]
+    PAYMENT_CHOICES = [
+    ('rib', 'RIB'),
+    ('ccp clé', 'Ccp Clé'),
+]
     PHONE_NUMBER_REGEX = r'^0[567][0-9]{8}$'
     phone_number_validator = RegexValidator(
         regex=PHONE_NUMBER_REGEX,
@@ -62,7 +66,7 @@ class CustomUser(AbstractUser):
     year = models.IntegerField(choices=YEARS_CHOICES,null=False,default=1)
     #date_of_birth = models.DateField(null=True)
     is_responsable = models.BooleanField(default=False)
-    RIP = models.CharField(max_length=10 ,null = True,unique=True) # IS UNNIIIIIIIIIQUE
+    payemnt_info = models.CharField(max_length=20 ,null = True,unique=True , choices=PAYMENT_CHOICES) # IS UNNIIIIIIIIIQUE
     phone_number = models.CharField(max_length=10,  null = True ,blank=True,validators=[phone_number_validator])
 
     def clean(self):
@@ -91,20 +95,6 @@ class CustomUser(AbstractUser):
             return f"{self.first_name} {self.last_name}, {self.get_grade_display()}"
         else:
             return f"{self.first_name} {self.last_name}"
-
-""" post ;
-{
-  "username": "lamia_gasmi",
-  "password": "azertyuiop",
-  "gender": "male",
-  "is_admin": false,
-  "is_recruited": false,
-  "grade": null,
-  "date_of_birth": "1990-01-01",
-  "is_responsable": false,
-  "RIP": null,
-  "phone_number": "0555555555"
-} """
 
 #error_consultation / rapport
 class Report(models.Model):
@@ -146,7 +136,7 @@ class JourFeries(Reason):
     pass
 
 class Absence(Reason):
-    pass
+    is_justified = models.BooleanField(default=False)
     
 """  creating instence : 
 exams_instance = Exams.objects.create(datedebut='2024-01-01', datefin='2024-01-05', description='Final exam') 

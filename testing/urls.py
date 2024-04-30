@@ -1,27 +1,24 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-
 from . import views
 from .views import *
 
-urlpatterns = [
-    path("users/",views.Users_list , name="users"),
-    path("users/<int:id>",views.Users_detail),
-
-    path('exams/', views.exams_list, name='exams_list'),
-    path('exams/<int:pk>/', views.exams_detail, name='exams_detail'),
-    path('vacation/', views.vacation_list, name='vacation_list'),
-    path('vacation/<int:pk>/', views.vacation_detail, name='vacation_detail'),
-    path('stage/', views.stage_list, name='stage_list'),
-    path('stage/<int:pk>/', views.stage_detail, name='stage_detail'),
-    path('jourferies/',views.jour_feries_list),
-    path('jourferies/<int:pk>/', views.jour_feries_detail, name='jourfries_detail'),
-    path('absence/', views.absence_list, name='absence_list'),
-    path('absence/<int:pk>/', views.absence_detail, name='absence_detail'),
-  
-    path('reports/', views.report_list),
-    path('reports/<int:id>/', views.report_detail),
-    path('reports/<int:id>/status/', views.report_status),
+urlpatterns = [  
+    path('users/', views.UsersList.as_view(), name='users-list'),
+    path('users/<int:pk>/', views.UsersDetail.as_view(), name='users-detail'),
+    path('exams/', views.ExamsList.as_view(), name='exams-list'),
+    path('exams/<int:pk>/', views.ExamsDetail.as_view(), name='exams-detail'),
+    path('vacations/', views.VacationList.as_view(), name='vacation-list'),
+    path('vacations/<int:pk>/', views.VacationDetail.as_view(), name='vacation-detail'),
+    path('stages/', views.StageList.as_view(), name='stage-list'),
+    path('stages/<int:pk>/', views.StageDetail.as_view(), name='stage-detail'),
+    path('absences/', views.AbsenceList.as_view(), name='absence-list'),
+    path('absences/<int:pk>/', views.AbsenceDetail.as_view(), name='absence-detail'),
+    path('jourferies/', views.JourFeriesList.as_view(), name='jourferies-list'),
+    path('jourferies/<int:pk>/', views.JourFeriesDetail.as_view(), name='jourferies-detail'),
+    path('reports/', views.ReportList.as_view(), name='report-list'),
+    path('reports/<int:pk>/', views.ReportDetail.as_view(), name='report-detail'),
+    path('reports/<int:id>/status/', views.report_status, name='report-status'),
 #registration
     path('inscription/', AjoutEnseignant.as_view(),name='inscription'),
     #login
@@ -32,5 +29,4 @@ urlpatterns = [
     path('reset-password/<str:token>/', ResetPasswordConfirmView.as_view(), name='reset_password_confirm'),
 
 
-    
 ]

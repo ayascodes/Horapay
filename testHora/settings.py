@@ -199,3 +199,9 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'o.djemai@esi-sba.dz'
 EMAIL_HOST_PASSWORD='jsvt hruu vzix oiod'
+
+REST_FRAMEWORK_SPECtacular = { 
+    'SCHEMA': { 
+        'AUTO_SCHEMA': True,  # Enable automatic schema generation 
+    }, 
+}
