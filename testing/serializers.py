@@ -3,6 +3,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 from .models import *
 
+
+
 class UserTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserType
@@ -120,10 +122,18 @@ class ResetPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
 
+#class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+ #   def validate(self, attrs):
+  #      data = super().validate(attrs)
+   #     data.update({'user_type': self.user.user_type})  # Assuming you have a 'user_type' field on your User model
+    #    return data
+
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    def validate(self, attrs):
-        data = super().validate(attrs)
-        data.update({'user_type': self.user.user_type})  # Assuming you have a 'user_type' field on your User model
-        return data
+    username_field = 'email'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields[self.username_field] = serializers.EmailField()
 
 

@@ -5,6 +5,7 @@ from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
 from .validators import validate_academic_year_format
 from django.core.exceptions import  ValidationError
+
 # Create your models here.
 
 class UserType(models.Model):
@@ -35,6 +36,7 @@ class CustomUser(AbstractUser):
         regex=PHONE_NUMBER_REGEX,
         message='Phone number must be 10 digits and start with 07, 05, or 06.'
     )
+    email = models.EmailField(unique=True)
     UserType = models.ForeignKey(UserType, on_delete=models.CASCADE,default=1)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES,null=False,default='Homme')
     is_admin = models.BooleanField(default=False)
@@ -67,8 +69,14 @@ class CustomUser(AbstractUser):
     #date_of_birth = models.DateField(null=True)
     is_responsable = models.BooleanField(default=False)
     payemnt_info = models.CharField(max_length=20 ,null = True,unique=True , choices=PAYMENT_CHOICES) # IS UNNIIIIIIIIIQUE
+    RIB = models.CharField(max_length=10, null=True, unique=True)
+    ccp = models.CharField(max_length=10,null=True, unique=True)
+    cle = models.CharField(max_length=2,null=True,unique=True)
     phone_number = models.CharField(max_length=10,  null = True ,blank=True,validators=[phone_number_validator])
-
+    reset_password_token = models.CharField(max_length=100, blank=True, null=True)
+    username = None
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
     def clean(self):
 
        #Get the selected month and year

@@ -1,27 +1,17 @@
 import secrets
-
-from django.contrib.auth.tokens import PasswordResetTokenGenerator, default_token_generator
+from django.contrib.auth.tokens import  default_token_generator
 from django.utils.http import urlsafe_base64_decode
-from rest_framework import generics, status
 from rest_framework.exceptions import ValidationError, NotFound
-from rest_framework.response import Response
-from rest_framework.views import APIView
-
 from .emails import send_activation_email, send_reset_password_email
-from .models import *
-from .serializers import *
-from rest_framework.decorators import api_view
 from rest_framework.permissions import AllowAny,IsAdminUser,IsAuthenticated
 from rest_framework.views import APIView
-from rest_framework.response import Response
-from .serializers import CustomTokenObtainPairSerializer
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from .models import *
 from .serializers import *
 from rest_framework.permissions import IsAuthenticated
-
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
 # Users CRUD
 class UsersList(generics.ListCreateAPIView):
     queryset = CustomUser.objects.all()
@@ -92,6 +82,67 @@ class ReportDetail(generics.RetrieveUpdateAPIView):
     queryset = Report.objects.all()
     serializer_class = ReportSerializer
 
+class SemestreList(generics.ListCreateAPIView):
+    queryset = Semestre.objects.all()
+    serializer_class = SemestreSerializer
+class SemestreDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Semestre.objects.all()
+    serializer_class = SemestreSerializer
+class DepartementList(generics.ListCreateAPIView):
+    queryset = Departement.objects.all()
+    serializer_class = DepartementSerializer
+
+class DepartementDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Departement.objects.all()
+    serializer_class = DepartementSerializer
+
+class SpecialiteList(generics.ListCreateAPIView):
+    queryset = Specialite.objects.all()
+    serializer_class = SpecialiteSerializer
+
+class SpecialiteDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Specialite.objects.all()
+    serializer_class = SpecialiteSerializer
+class SalleList(generics.ListCreateAPIView):
+    queryset = Salle.objects.all()
+    serializer_class = SalleSerializer
+
+class SalleDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Salle.objects.all()
+    serializer_class = SalleSerializer
+
+class PromoList(generics.ListCreateAPIView):
+    queryset = Promo.objects.all()
+    serializer_class = SalleSerializer
+
+class PromoDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Promo.objects.all()
+    serializer_class = SalleSerializer
+class SectionList(generics.ListCreateAPIView):
+    queryset = Section.objects.all()
+    serializer_class = SectionSerializer
+
+class SectionDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Section.objects.all()
+    serializer_class = SectionSerializer
+
+class GroupList(generics.ListCreateAPIView):
+    queryset = Group.objects.all()
+    serializer_class = SectionSerializer
+
+class GroupDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Group.objects.all()
+    serializer_class = SectionSerializer
+
+class ModuleList(generics.ListCreateAPIView):
+    queryset = Module.objects.all()
+    serializer_class = SectionSerializer
+
+class ModuleDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Module.objects.all()
+    serializer_class = SectionSerializer
+
+
 @api_view(['GET'])
 def report_status(request, id):
     try:
@@ -127,21 +178,7 @@ class AjoutEnseignant(APIView):
            })
 
 
-class ObtainTokenView(APIView):
-    permission_classes = [AllowAny]
-    serializer_class = CustomTokenObtainPairSerializer
-    def post(self, request, format=None):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            return Response(serializer.validated_data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-class TokenGenerator(PasswordResetTokenGenerator):
 
-   def _make_hash_value(self, user, timestamp):
-       return str(user.pk) + str(timestamp) + str(user.is_active)
-
-
-token_generator = TokenGenerator()
 class ResetPasswordRequestView(APIView):
     permission_classes = [AllowAny]
     def post(self,request):
@@ -150,8 +187,10 @@ class ResetPasswordRequestView(APIView):
             email = serializer.validated_data['email']
             user = CustomUser.objects.filter(email=email).first()
             if user:
-                token= secrets.token_urlsafe(64)
+                #token= secrets.token_urlsafe(64)
                 #token = token_generator.make_token(user)
+                refresh = RefreshToken.for_user(user)
+                token = refresh.access_token
 
                 user.reset_password_token = token
                 user.save()
@@ -189,4 +228,8 @@ class ResetPasswordConfirmView(APIView):
         user.save()
         return Response({'message': 'Password reset successful'})
 
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
 
