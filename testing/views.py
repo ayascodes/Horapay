@@ -1,9 +1,21 @@
+import secrets
+
+from django.contrib.auth.tokens import PasswordResetTokenGenerator, default_token_generator
 from django.shortcuts import render
+from django.utils.http import urlsafe_base64_decode
 from rest_framework import status
+from rest_framework.exceptions import ValidationError, NotFound
 from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .emails import send_activation_email, send_reset_password_email
 from .models import *
 from .serializers import *
 from rest_framework.decorators import api_view
+from rest_framework.permissions import AllowAny,IsAdminUser,IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .serializers import CustomTokenObtainPairSerializer
 
 # im using function-based views
 
@@ -284,4 +296,96 @@ def report_status(request, id):
             'status': report.status
             }
             return Response(data)
+
+#authentication
+class AjoutEnseignant(APIView):
+   permission_classes = [IsAuthenticated]
+   def post(self, request):
+       try:
+          serializer = CustomUserSerialize(data=request.data)
+          password = request.data.get('password')
+          if serializer.is_valid():
+               serializer.save()
+               send_activation_email(serializer.data['email'],password)
+               return Response({
+               'status':200,
+               'message':'votre ajout d\'enseignant est effectuer avec succes',
+               'data': serializer.data,
+            })
+          return Response({
+              'status':400,
+              'message':'Une chose qu\'il n\'est pas correcte',
+              'data':serializer.errors
+          })
+       except Exception as e:
+           return Response({
+               'status': 400,
+               'message': 'Une chose qu\'il n\'est pas correcte',
+               'data': str(e)
+           })
+
+
+class ObtainTokenView(APIView):
+    permission_classes = [AllowAny]
+    serializer_class = CustomTokenObtainPairSerializer
+    def post(self, request, format=None):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            return Response(serializer.validated_data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class TokenGenerator(PasswordResetTokenGenerator):
+
+   def _make_hash_value(self, user, timestamp):
+       return str(user.pk) + str(timestamp) + str(user.is_active)
+
+
+token_generator = TokenGenerator()
+class ResetPasswordRequestView(APIView):
+    permission_classes = [AllowAny]
+    def post(self,request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            user = CustomUser.objects.filter(email=email).first()
+            if user:
+                token= secrets.token_urlsafe(64)
+                #token = token_generator.make_token(user)
+
+                user.reset_password_token = token
+                user.save()
+                send_reset_password_email(email,token)
+                return Response({'message':'un email de re-initialisation a ete envoye'})
+            return Response(serializer.errors,status=400)
+
+class ResetPasswordConfirmView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, token):
+        Response.data={
+            "Received token:":token
+        }
+        if not token:
+            raise ValidationError("Token is required")
+
+        try:
+            user_id = urlsafe_base64_decode(token).decode('utf-8')
+            #Response("Decoded user_id:", user_id)  # Debugging statement
+            user = CustomUser.objects.get(pk=user_id)
+        except (TypeError, ValueError, OverflowError):
+            raise ValidationError("Invalid token format")
+        except CustomUser.DoesNotExist:
+            raise NotFound("User not found")
+
+        if not default_token_generator.check_token(user, token):
+            raise ValidationError("Invalid token")
+
+        new_password = request.data.get('new_password')
+        if not new_password:
+            raise ValidationError("New password is required.")
+
+        user.set_password(new_password)
+        user.save()
+        return Response({'message': 'Password reset successful'})
+
+
 

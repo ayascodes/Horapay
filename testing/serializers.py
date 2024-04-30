@@ -1,14 +1,31 @@
+
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 from .models import *
 
-from rest_framework import serializers
-from .models import *
-
-        
+class UserTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserType
+        fields = '__all__'
 class CustomUserSerialize(serializers.ModelSerializer):
+    password = serializers.CharField(
+        max_length=8,min_length=6,write_only=True
+    )
     class Meta:
         model = CustomUser
         fields = '__all__'
+        extra_kwargs = {
+            'password': {'write_only': True}
+        }
+
+    def create(self, validated_data):
+        password = validated_data.pop('password', None)
+        instance = self.Meta.model(**validated_data)
+        if password is not None:
+            instance.set_password(password)
+        instance.save()
+        return instance
+
 
 #Reason subclasses 
 #this is a common date validator :
@@ -49,3 +66,64 @@ class ReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
         fields = '__all__'
+
+class SemestreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Semestre
+        fields = '__all__'
+
+class DepartementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Departement
+        fields = '__all__'
+class SpecialiteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Specialite
+        fields = '__all__'
+
+class SalleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Salle
+        fields ='__all__'
+
+class PromoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Promo
+        fields = '__all__'
+
+class SectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Section
+        fields = '__all__'
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = '__all__'
+
+class ModuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Module
+        fields = '__all__'
+
+class EmailVerificationSerializer(serializers.ModelSerializer):
+    token = serializers.CharField(max_length=555)
+    class Meta:
+        model = CustomUser
+        fields = ['token']
+
+class Weekly_sessionserializer(serializers.ModelSerializer):
+    class Meta:
+        model = Weekly_session
+        fields = '__all__'
+
+class ResetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data.update({'user_type': self.user.user_type})  # Assuming you have a 'user_type' field on your User model
+        return data
+
+
