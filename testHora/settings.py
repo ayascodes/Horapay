@@ -60,6 +60,9 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
 ]
 
+CORS_ALLOWED_ORIGINS=[
+    'http://127.0.0.1:3000'
+]
 ROOT_URLCONF = 'testHora.urls'
 
 TEMPLATES = [
@@ -89,7 +92,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'freedb_HoraPay',
         'USER':'freedb_HoraPay_group',
-        'PASSWORD' : 'Rw$C7X3jB$Vn!$Q',
+        'PASSWORD' : 'b@nPqq3MWSdAx@a',
         'HOST':'sql.freedb.tech',
         'PORT':'3306',
     }

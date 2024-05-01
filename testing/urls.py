@@ -31,6 +31,8 @@ urlpatterns = [
     path('Promo/<int:pk>/', views.PromoDetail.as_view()),
     path('sections/', views.SectionList.as_view()),
     path('sections/<int:pk>/', views.SectionDetail.as_view()),
+    path('weekly-sessions/', views.WeeklySessionList.as_view()),
+    path('weekly-sessions/<int:pk>/', views.WeeklySessionDetail.as_view()),
 #registration
     path('inscription/', AjoutEnseignant.as_view(),name='inscription'),
     #login

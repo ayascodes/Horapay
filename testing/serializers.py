@@ -90,9 +90,28 @@ class SalleSerializer(serializers.ModelSerializer):
         fields ='__all__'
 
 class PromoSerializer(serializers.ModelSerializer):
+    departement_name = serializers.CharField(source='departement', write_only=True)
+    specialite_name = serializers.CharField(source='specialite', write_only=True)
     class Meta:
         model = Promo
         fields = '__all__'
+
+    class Meta:
+        model = Promo
+        fields = ['nom', 'departement_name', 'specialite_name']
+
+    def create(self, validated_data):
+        departement_name = validated_data.pop('departement_name', None)
+        specialite_name = validated_data.pop('specialite_name', None)
+
+        departement = Departement.objects.get(nom=departement_name)
+        validated_data['departement'] = departement
+
+        if specialite_name:
+            specialite = Specialite.objects.get(nom=specialite_name)
+            validated_data['specialite'] = specialite
+
+        return Promo.objects.create(**validated_data)
 
 class SectionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -170,3 +189,4 @@ class AbsenceSerializer(serializers.ModelSerializer):
 
 
 # note : i forgot the reason table the father of absence, need to be fixed to the actual models
+

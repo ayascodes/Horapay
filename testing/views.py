@@ -5,13 +5,15 @@ from rest_framework.exceptions import ValidationError, NotFound
 from .emails import send_activation_email, send_reset_password_email
 from rest_framework.permissions import AllowAny,IsAdminUser,IsAuthenticated
 from rest_framework.views import APIView
-from rest_framework import generics, status
+from rest_framework import generics, status, viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .serializers import *
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
+import logging
+import time
 # Users CRUD
 class UsersList(generics.ListCreateAPIView):
     queryset = CustomUser.objects.all()
@@ -142,6 +144,14 @@ class ModuleDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Module.objects.all()
     serializer_class = SectionSerializer
 
+class WeeklySessionList(generics.ListCreateAPIView):
+    queryset = Weekly_session.objects.all()
+    serializer_class = Weekly_sessionserializer
+
+class WeeklySessionDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Weekly_session.objects.all()
+    serializer_class = Weekly_sessionserializer
+
 
 @api_view(['GET'])
 def report_status(request, id):
@@ -152,7 +162,7 @@ def report_status(request, id):
 
 #authentication
 class AjoutEnseignant(APIView):
-   permission_classes = [IsAuthenticated]
+   #permission_classes = [IsAuthenticated]
    def post(self, request):
        try:
           serializer = CustomUserSerialize(data=request.data)
@@ -247,24 +257,24 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
 
 
-
 class TeacherAbsenceStatsView(APIView):
     def get(self, request):
-        teachers = Teacher.objects.all()
+        teachers = CustomUser.objects.all()
         data = []
         for teacher in teachers:
 	        sessions = teacher.session_set.filter(
-                date__gte=current_semester.start_date,
-                date__lte=current_semester.end_date
+                #date__gte=current_semester.start_date,
+                #date__lte=current_semester.end_date
             )
 
-            justified_count = sessions.filter(occured=False).filter(absence__justified=True).count()
-            unjustified_count = sessions.filter(occured=False).filter(absence__justified=False).count()
-            teacher_data = {
+        justified_count = sessions.filter(occured=False).filter(absence__justified=True).count()
+        unjustified_count = sessions.filter(occured=False).filter(absence__justified=False).count()
+        teacher_data = {
             'id': teacher.id,
             'name': teacher.name,
             'justified_absences': justified_count,
                 'unjustified_absences': unjustified_count,
             }
-            data.append(teacher_data)
+        data.append(teacher_data)
         return Response(data)
+
