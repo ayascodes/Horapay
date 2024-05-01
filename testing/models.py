@@ -38,45 +38,47 @@ class CustomUser(AbstractUser):
     )
     email = models.EmailField(unique=True)
     UserType = models.ForeignKey(UserType, on_delete=models.CASCADE,default=1)
-    gender = models.CharField(max_length=10, choices=GENDER_CHOICES,null=False,default='Homme')
+    sexe = models.CharField(max_length=10, choices=GENDER_CHOICES,null=False,default='Homme')
     is_admin = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     #fields below are for teacher only
-    is_recruited = models.BooleanField(default=False)
+    education= models.CharField(default=False)
     grade = models.CharField(max_length=50, null = True ,blank=True , choices=GRADE_CHOICES) # needs more costumisaton
     #date de naissance
     DAYS_CHOICES = [(i, f"{i} days") for i in range(1, 31)]
 
-    day = models.IntegerField(choices=DAYS_CHOICES,null=False,default=1986)
+    jour = models.IntegerField(choices=DAYS_CHOICES,null=False,default=1986)
     MONTHS_CHOICES = [
-        (1, 'Janvier'),
-        (2, 'Février'),
-        (3, 'Mars'),
-        (4, 'Avril'),
-        (5, 'Mai'),
-        (6, 'Juin'),
-        (7, 'Juillet'),
-        (8, 'Août'),
-        (9, 'Septembre'),
-        (10, 'Octobre'),
-        (11, 'Novembre'),
-        (12, 'Décembre'),
+        ('Janvier', 'Janvier'),
+        ('Février', 'Février'),
+        ('Mars', 'Mars'),
+        ('Avril', 'Avril'),
+        ('Mai', 'Mai'),
+        ('Juin', 'Juin'),
+        ('Juillet', 'Juillet'),
+        ('Août', 'Août'),
+        ('Septembre', 'Septembre'),
+        ('Octobre', 'Octobre'),
+        ('Novembre', 'Novembre'),
+        ('Décembre', 'Décembre'),
     ]
-    month = models.CharField(max_length=10,choices=MONTHS_CHOICES,null=False,default=1)
+    mois = models.CharField(max_length=10,choices=MONTHS_CHOICES,null=False,default=1)
     current_year = datetime.now().year
     YEARS_CHOICES = [(i,str(i)) for i in range(1923,current_year+1)]
-    year = models.IntegerField(choices=YEARS_CHOICES,null=False,default=1)
-    #date_of_birth = models.DateField(null=True)
-    is_responsable = models.BooleanField(default=False)
-    payemnt_info = models.CharField(max_length=20 ,null = True,unique=True , choices=PAYMENT_CHOICES) # IS UNNIIIIIIIIIQUE
+    annee = models.IntegerField(choices=YEARS_CHOICES,null=False,default=1)
+    responsable = models.BooleanField(default=False)
+    #payemnt_info = models.CharField(max_length=20 ,null = True,unique=True , choices=PAYMENT_CHOICES) # IS UNNIIIIIIIIIQUE
     RIB = models.CharField(max_length=10, null=True, unique=True)
     ccp = models.CharField(max_length=10,null=True, unique=True)
     cle = models.CharField(max_length=2,null=True,unique=True)
-    phone_number = models.CharField(max_length=10,  null = True ,blank=True,validators=[phone_number_validator])
+    numero_telephone = models.CharField(max_length=10,  null = True ,blank=True,validators=[phone_number_validator])
     reset_password_token = models.CharField(max_length=100, blank=True, null=True)
+    charge_actuel=models.IntegerField(null=True)
+    heure_sup_actuel=models.IntegerField(null=True)
     username = None
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
+
     def clean(self):
 
        #Get the selected month and year
@@ -193,7 +195,7 @@ class Salle(models.Model):
         departement = models.ForeignKey(Departement, on_delete=models.CASCADE, null=False)
         type_salle = models.CharField(max_length=20, choices=TYPE_CHOICES, default='Amphitheatre')
         nom_salle = models.CharField(max_length=50)
-        capacity = models.PositiveIntegerField()
+        capacite = models.PositiveIntegerField()
 
         def __str__(self):
             return f" {self.type_salle} {self.nom_salle} - {self.departement}"
@@ -201,7 +203,6 @@ class Promo(models.Model):
     departement = models.ForeignKey(Departement, on_delete=models.CASCADE,null=False,default=1)
 
     nom = models.CharField(max_length=20,null=True)
-    #has_specialty = models.BooleanField(default=False)
     specialite = models.ForeignKey(Specialite,on_delete=models.CASCADE,null=True)
     def __str__(self):
         if self.specialite is None:
@@ -246,12 +247,15 @@ class Weekly_session(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     salle = models.ForeignKey(Salle, on_delete=models.CASCADE)
     module = models.ForeignKey(Module, on_delete=models.CASCADE)
-    teacher = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    day = models.CharField(max_length=10, choices=Day_CHOICES, default='Dimanche')
+    enseignant = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    jour = models.CharField(max_length=10, choices=Day_CHOICES, default='Dimanche')
     heure_debut = models.IntegerField()
     heure_fin = models.IntegerField()
-    session_type = models.CharField(max_length=10, choices=TYPE_SESSION_CHOICES, default='Cours')
+    type_session = models.CharField(max_length=10, choices=TYPE_SESSION_CHOICES, default='Cours')
 
     def __str__(self):
         return f"weekly {self.session_type} {self.module} {self.teacher}"
+
+
+
 
