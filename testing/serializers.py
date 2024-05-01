@@ -78,6 +78,7 @@ class DepartementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Departement
         fields = '__all__'
+
 class SpecialiteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Specialite
@@ -137,3 +138,35 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         self.fields[self.username_field] = serializers.EmailField()
 
 
+
+
+
+
+
+
+
+class SessionSerializer(serializers.ModelSerializer):
+    absences = AbsenceSerializer(source='absence_set', read_only=True)  # Nested absence data
+
+    class Meta:
+        model = Section #there is no session model for now 
+        fields = ('id', 'occured', 'absences')
+
+
+
+class TeacherSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = '__all__'
+
+
+class AbsenceSerializer(serializers.ModelSerializer):
+    justified = serializers.BooleanField(source='absence.justified', read_only=True)  # Access absence data
+
+    class Meta:
+        model = Absence
+        fields = ('justified',)
+
+
+
+# note : i forgot the reason table the father of absence, need to be fixed to the actual models

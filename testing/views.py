@@ -233,3 +233,38 @@ class ResetPasswordConfirmView(APIView):
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class TeacherAbsenceStatsView(APIView):
+    def get(self, request):
+        teachers = Teacher.objects.all()
+        data = []
+        for teacher in teachers:
+	        sessions = teacher.session_set.filter(
+                date__gte=current_semester.start_date,
+                date__lte=current_semester.end_date
+            )
+
+            justified_count = sessions.filter(occured=False).filter(absence__justified=True).count()
+            unjustified_count = sessions.filter(occured=False).filter(absence__justified=False).count()
+            teacher_data = {
+            'id': teacher.id,
+            'name': teacher.name,
+            'justified_absences': justified_count,
+                'unjustified_absences': unjustified_count,
+            }
+            data.append(teacher_data)
+        return Response(data)
