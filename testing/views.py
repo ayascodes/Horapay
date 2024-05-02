@@ -87,9 +87,11 @@ class ReportDetail(generics.RetrieveUpdateAPIView):
 class SemestreList(generics.ListCreateAPIView):
     queryset = Semestre.objects.all()
     serializer_class = SemestreSerializer
+
 class SemestreDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Semestre.objects.all()
     serializer_class = SemestreSerializer
+
 class DepartementList(generics.ListCreateAPIView):
     queryset = Departement.objects.all()
     serializer_class = DepartementSerializer
@@ -105,6 +107,7 @@ class SpecialiteList(generics.ListCreateAPIView):
 class SpecialiteDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Specialite.objects.all()
     serializer_class = SpecialiteSerializer
+
 class SalleList(generics.ListCreateAPIView):
     queryset = Salle.objects.all()
     serializer_class = SalleSerializer
@@ -115,11 +118,12 @@ class SalleDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class PromoList(generics.ListCreateAPIView):
     queryset = Promo.objects.all()
-    serializer_class = SalleSerializer
+    serializer_class = PromoSerializer
 
 class PromoDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Promo.objects.all()
-    serializer_class = SalleSerializer
+    serializer_class = PromoSerializer
+
 class SectionList(generics.ListCreateAPIView):
     queryset = Section.objects.all()
     serializer_class = SectionSerializer
@@ -130,19 +134,19 @@ class SectionDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class GroupList(generics.ListCreateAPIView):
     queryset = Group.objects.all()
-    serializer_class = SectionSerializer
+    serializer_class = GroupSerializer
 
 class GroupDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Group.objects.all()
-    serializer_class = SectionSerializer
+    serializer_class = GroupSerializer
 
 class ModuleList(generics.ListCreateAPIView):
     queryset = Module.objects.all()
-    serializer_class = SectionSerializer
+    serializer_class = ModuleSerializer
 
 class ModuleDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Module.objects.all()
-    serializer_class = SectionSerializer
+    serializer_class = ModuleSerializer
 
 class WeeklySessionList(generics.ListCreateAPIView):
     queryset = Weekly_session.objects.all()
@@ -262,17 +266,17 @@ class TeacherAbsenceStatsView(APIView):
         teachers = CustomUser.objects.all()
         data = []
         for teacher in teachers:
-	        sessions = teacher.session_set.filter(
+            sessions = teacher.session_set.filter(
                 #date__gte=current_semester.start_date,
                 #date__lte=current_semester.end_date
             )
 
-        justified_count = sessions.filter(occured=False).filter(absence__justified=True).count()
-        unjustified_count = sessions.filter(occured=False).filter(absence__justified=False).count()
-        teacher_data = {
-            'id': teacher.id,
-            'name': teacher.name,
-            'justified_absences': justified_count,
+            justified_count = sessions.filter(occured=False).filter(absence__justified=True).count()
+            unjustified_count = sessions.filter(occured=False).filter(absence__justified=False).count()
+            teacher_data = {
+                'id': teacher.id,
+                'name': teacher.name,
+                'justified_absences': justified_count,
                 'unjustified_absences': unjustified_count,
             }
         data.append(teacher_data)

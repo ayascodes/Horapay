@@ -33,14 +33,19 @@ urlpatterns = [
     path('sections/<int:pk>/', views.SectionDetail.as_view()),
     path('weekly-sessions/', views.WeeklySessionList.as_view()),
     path('weekly-sessions/<int:pk>/', views.WeeklySessionDetail.as_view()),
-#registration
+    path('module/', views.ModuleList.as_view()),
+    path('module/<int:pk>/', views.ModuleDetail.as_view()),
+    path('group/', views.GroupList.as_view()),
+    path('module/<int:pk>/', views.GroupDetail.as_view()),
+
+    #registration
     path('inscription/', AjoutEnseignant.as_view(),name='inscription'),
+
     #login
     path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
     #reset_password
     path('reset_password/',ResetPasswordRequestView.as_view(),name='reset_password_request'),
     path('reset-password/<str:token>/', ResetPasswordConfirmView.as_view(), name='reset_password_confirm'),
-
-
 ]

@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
+    'django_seed',
 ]
 
 MIDDLEWARE = [
@@ -193,8 +194,10 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'Django API HoraPay',
     'VERSION': '1.0.0',
 }
+
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
+
 #SEND EMAIL CONFIGURATION
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
