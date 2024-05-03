@@ -90,28 +90,12 @@ class SalleSerializer(serializers.ModelSerializer):
         fields ='__all__'
 
 class PromoSerializer(serializers.ModelSerializer):
-    departement_name = serializers.CharField(source='departement', write_only=True)
-    specialite_name = serializers.CharField(source='specialite', write_only=True)
+    #departement_name = serializers.CharField(source='departement', write_only=True)
+    #specialite_name = serializers.CharField(source='specialite', write_only=True)
     class Meta:
         model = Promo
-        fields = '__all__'
+        fields = fields = ['departement', 'nom', 'specialite']
 
-    class Meta:
-        model = Promo
-        fields = ['nom', 'departement_name', 'specialite_name']
-
-    def create(self, validated_data):
-        departement_name = validated_data.pop('departement_name', None)
-        specialite_name = validated_data.pop('specialite_name', None)
-
-        departement = Departement.objects.get(nom=departement_name)
-        validated_data['departement'] = departement
-
-        if specialite_name:
-            specialite = Specialite.objects.get(nom=specialite_name)
-            validated_data['specialite'] = specialite
-
-        return Promo.objects.create(**validated_data)
 
 class SectionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -125,6 +109,11 @@ class GroupSerializer(serializers.ModelSerializer):
 class ModuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Module
+        fields = '__all__'
+
+class GradeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Grade
         fields = '__all__'
 
 class EmailVerificationSerializer(serializers.ModelSerializer):
@@ -142,11 +131,7 @@ class ResetPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
 
-#class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
- #   def validate(self, attrs):
-  #      data = super().validate(attrs)
-   #     data.update({'user_type': self.user.user_type})  # Assuming you have a 'user_type' field on your User model
-    #    return data
+
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):

@@ -92,7 +92,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'freedb_HoraPay',
         'USER':'freedb_HoraPay_group',
-        'PASSWORD' : 'b@nPqq3MWSdAx@a',
+        'PASSWORD' :'WugRmqqe3g@PBmM',
         'HOST':'sql.freedb.tech',
         'PORT':'3306',
     }

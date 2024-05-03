@@ -115,11 +115,11 @@ class SalleDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class PromoList(generics.ListCreateAPIView):
     queryset = Promo.objects.all()
-    serializer_class = SalleSerializer
+    serializer_class = PromoSerializer
 
 class PromoDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Promo.objects.all()
-    serializer_class = SalleSerializer
+    serializer_class = PromoSerializer
 class SectionList(generics.ListCreateAPIView):
     queryset = Section.objects.all()
     serializer_class = SectionSerializer
@@ -130,19 +130,26 @@ class SectionDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class GroupList(generics.ListCreateAPIView):
     queryset = Group.objects.all()
-    serializer_class = SectionSerializer
+    serializer_class =GroupSerializer
 
 class GroupDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Group.objects.all()
-    serializer_class = SectionSerializer
+    serializer_class = GroupSerializer
 
 class ModuleList(generics.ListCreateAPIView):
     queryset = Module.objects.all()
-    serializer_class = SectionSerializer
+    serializer_class = ModuleSerializer
 
 class ModuleDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Module.objects.all()
-    serializer_class = SectionSerializer
+    serializer_class = ModuleSerializer
+class GradeList(generics.ListCreateAPIView):
+    queryset = Grade.objects.all()
+    serializer_class = GradeSerializer
+
+class GradeDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Grade.objects.all()
+    serializer_class = GradeSerializer
 
 class WeeklySessionList(generics.ListCreateAPIView):
     queryset = Weekly_session.objects.all()
@@ -168,7 +175,10 @@ class AjoutEnseignant(APIView):
           serializer = CustomUserSerialize(data=request.data)
           password = request.data.get('password')
           if serializer.is_valid():
-               serializer.save()
+              # serializer.save()
+               user = serializer.save(password=password)
+               user.UserType="Enseignant"
+               user.save()
                send_activation_email(serializer.data['email'],password)
                return Response({
                'status':200,
@@ -186,6 +196,36 @@ class AjoutEnseignant(APIView):
                'message': 'Une chose qu\'il n\'est pas correcte',
                'data': str(e)
            })
+class AjoutAdmin(APIView):
+   #permission_classes = [IsAuthenticated]
+   def post(self, request):
+       try:
+          serializer = CustomUserSerialize(data=request.data)
+          password = request.data.get('password')
+          if serializer.is_valid():
+               #serializer.save()
+               user = serializer.save(password=password)
+               user.UserType = "Admin"
+               user.is_admin =True
+               user.save()
+               send_activation_email(serializer.data['email'],password)
+               return Response({
+               'status':200,
+               'message':'votre ajout d\'admin est effectuer avec succes',
+               'data': serializer.data,
+            })
+          return Response({
+              'status':400,
+              'message':'Une chose qu\'il n\'est pas correcte',
+              'data':serializer.errors
+          })
+       except Exception as e:
+           return Response({
+               'status': 400,
+               'message': 'Une chose qu\'il n\'est pas correcte',
+               'data': str(e)
+           })
+
 
 
 

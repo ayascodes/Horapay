@@ -16,6 +16,10 @@ class UserType(models.Model):
     ]
     Type = models.CharField(max_length=20, choices=TYPE_CHOICES)
 
+class Grade(models.Model):
+    nom=models.CharField(max_length=20)
+    prix_heure=models.IntegerField()
+
 
 class CustomUser(AbstractUser):
     GENDER_CHOICES = [
@@ -24,7 +28,7 @@ class CustomUser(AbstractUser):
     ]
     GRADE_CHOICES = [
         ('assistant master a', 'assistant master a'),
-        ('assistant master b', 'assistant master b'),
+        ('assistant master a', 'assistant master b'),
         ('lecteur a', 'lecteur a'),
         ('lecteur b', 'lecteur b'),
         ('enseignant', 'enseignant'),
@@ -43,13 +47,14 @@ class CustomUser(AbstractUser):
     prenom = models.CharField(max_length=20, null=False, default=None)
     email = models.EmailField(unique=True, null=False)
     # mot_de_passe=models.CharField(max_length=8,null=False,default=None)
-    UserType = models.ForeignKey(UserType, on_delete=models.CASCADE, default=1)
+    UserType = models.CharField(max_length=20,null=True)
     sexe = models.CharField(max_length=10, choices=GENDER_CHOICES, null=False, default='Homme')
     is_admin = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     # fields below are for teacher only
     education = models.CharField(max_length=20, null=True, blank=True)
-    grade = models.CharField(max_length=50, null=True, blank=True, choices=GRADE_CHOICES)  # needs more costumisaton
+    #grade = models.CharField(max_length=50, null=True, blank=True, choices=GRADE_CHOICES)  # needs more costumisaton
+    grade=models.ForeignKey(Grade,on_delete=models.CASCADE,default=None)
     # date de naissance
     DAYS_CHOICES = [(i, f"{i} days") for i in range(1, 31)]
 
@@ -134,7 +139,6 @@ class Report(models.Model):
 
 # reason :
 class Reason(models.Model):
-    enseignant = models.ForeignKey(CustomUser, on_delete=models.CASCADE, default=None)
     datedebut = models.DateField()
     datefin = models.DateField()
     description = models.CharField(max_length=100)
@@ -164,6 +168,7 @@ class JourFeries(Reason):
 
 
 class Absence(Reason):
+    enseignant = models.ForeignKey(CustomUser, on_delete=models.CASCADE, default=None)
     is_justified = models.BooleanField(default=False)
 
 
@@ -268,36 +273,41 @@ class Module(models.Model):
 
 class Weekly_session(models.Model):
     Day_CHOICES = [
-        ('1', 'Samedi'),
-        ('2', 'Dimanche'),
-        ('3', 'Lundi'),
-        ('4', 'Mardi'),
-        ('5', 'Mercredi'),
-        ('6', 'Jeudi')
+        ('Samedi', 'Samedi'),
+        ('Dimanche', 'Dimanche'),
+        ('Lundi', 'Lundi'),
+        ('Mardi', 'Mardi'),
+        ('Mercredi', 'Mercredi'),
+        ('Jeudi', 'Jeudi')
     ]
     TYPE_SESSION_CHOICES = [
-        ('1', 'Cours'),
-        ('2', 'TD'),
-        ('3', 'TP')
+        ('Cours', 'Cours'),
+        ('TD', 'TD'),
+        ('TP', 'TP')
     ]
     POUR_CHOICES = [
         ('Que pour une semaine', 'Que pour une semaine'),
         ('Pour le semestre', 'Pour le semestre')
     ]
-    enseignant = models.ForeignKey(CustomUser, on_delete=models.CASCADE, default=1)
+    enseignant = models.ForeignKey(CustomUser, on_delete=models.CASCADE, default=None)
     semestre = models.ForeignKey(Semestre, on_delete=models.CASCADE, default=1)
+    Departement=models.ForeignKey(Departement,on_delete=models.CASCADE,default=1)
+    Promo=models.ForeignKey(Promo,on_delete=models.CASCADE,default=1)
+    Section=models.ForeignKey(Section,on_delete=models.CASCADE,default=1)
     group = models.ForeignKey(Group, on_delete=models.CASCADE, default=None)
     pour = models.CharField(max_length=20, choices=POUR_CHOICES, default='Que pour une semaine')
     date = models.DateField(null=True)
-    jour = models.CharField(max_length=10, choices=Day_CHOICES, default='Dimanche', null=True)
+    jour = models.CharField(max_length=10, choices=Day_CHOICES, default='Dimanche', null=True,blank=True)
+    heure_supp=models.BooleanField(default=False)
     heure_debut = models.IntegerField()
     heure_fin = models.IntegerField()
-    module = models.ForeignKey(Module, on_delete=models.CASCADE)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE,default=None)
     type_session = models.CharField(max_length=10, choices=TYPE_SESSION_CHOICES, default='Cours')
-    salle = models.ForeignKey(Salle, on_delete=models.CASCADE)
+    salle = models.ForeignKey(Salle, on_delete=models.CASCADE,default=None)
 
     def __str__(self):
         return f"weekly {self.type_session} {self.module} {self.enseignant}"
+
 
 
 
