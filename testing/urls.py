@@ -49,4 +49,90 @@ urlpatterns = [
     #reset_password
     path('reset_password/',ResetPasswordRequestView.as_view(),name='reset_password_request'),
     path('reset-password/<str:token>/', ResetPasswordConfirmView.as_view(), name='reset_password_confirm'),
+
+
+
+
+
+
+
+
+
+
+    #READ THIS (tell me if i made a mistake), see figma to know exactly what im talking about
+
+#for frontend, i did separate urls, so i dont ruin the old ones if they dont work correctly
+    
+    
+    
+# create emploi interface:
+    
+    # enseignant is the same, we get them all, no need to change it
+    # also semester
+    # also departement
+
+
+    # matiere, salle stay like they are, we get them all
+
+    # save button in the interface is the weeklySession, need to verify if it work in both cases (semester and semaine)
+
+
+
+
+
+
+# vos enseignants interface:
+
+    # when entering the interface we get all enseignats, already done like before nothing change
+    # add enseignant is the same
+
+    # search and filters are needed
+    
+    #all interface below it (modifier, delete ..) are already done
+
+
+
+
+
+# enseignant -> absences interface:
+    path('enseignant_abs_count/', EnseignantAbsenceCount.as_view()),
+    # ajouter absence already done
+
+
+
+
+
+# enseignant -> paiment (here the algorithme will be used)
+    #
+
+
+
+
+
+# preferences -> departement interface:
+
+    # no change, already done
+    # in the model, we need to remove choice fields of departement (so there is no restriction, just a string)
+
+
+
+
+
+# agenda annulle interfaces:
+
+    #no change already done correctly
+
+
+
+
+
+
+#
+
+
+
+
+
+
+
 ]

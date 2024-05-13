@@ -36,7 +36,8 @@ class DateRangeValidationMixin:
         if data['datedebut'] > data['datefin']:
             raise serializers.ValidationError("La date de début doit être antérieure à la date de fin.")
         return data
-    
+
+
 class ExamsSerializer(DateRangeValidationMixin,serializers.ModelSerializer):
     class Meta:
         model = Exams
@@ -171,8 +172,4 @@ class AbsenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Absence
         fields = ('justified',)
-
-
-
-# note : i forgot the reason table the father of absence, need to be fixed to the actual models
 
