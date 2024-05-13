@@ -555,6 +555,7 @@ import locale
 from datetime import datetime, timedelta
 from dateutil.rrule import rrule, DAILY, MONTHLY
 
+
 class DateRangeView(APIView):
     def get(self, request):
         # Set the locale to French
