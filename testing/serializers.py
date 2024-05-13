@@ -13,6 +13,7 @@ class CustomUserSerialize(serializers.ModelSerializer):
     password = serializers.CharField(
         max_length=8,min_length=6,write_only=True
     )
+    grade_nom = serializers.CharField(source='grade.nom', read_only=True)
     class Meta:
         model = CustomUser
         fields = '__all__'
@@ -27,6 +28,15 @@ class CustomUserSerialize(serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        nom = validated_data.get('nom', instance.nom)
+        prenom = validated_data.get('prenom', instance.prenom)
+        instance.full_name = f"{nom} {prenom}"
+        instance.save()
+        return instance
+
 
 
 #Reason subclasses 
@@ -94,7 +104,7 @@ class PromoSerializer(serializers.ModelSerializer):
     #specialite_name = serializers.CharField(source='specialite', write_only=True)
     class Meta:
         model = Promo
-        fields = fields = ['departement', 'nom', 'specialite']
+        fields = '__all__'
 
 
 class SectionSerializer(serializers.ModelSerializer):
@@ -114,9 +124,13 @@ class ModuleSerializer(serializers.ModelSerializer):
 
 class GradeSerializer(serializers.ModelSerializer):
     class Meta:
-        model=Grade
+        model = Grade
         fields = '__all__'
 
+class Type_seanceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Type_seance
+        fields = '__all__'
 class EmailVerificationSerializer(serializers.ModelSerializer):
     token = serializers.CharField(max_length=555)
     class Meta:
@@ -141,6 +155,15 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields[self.username_field] = serializers.EmailField()
+
+    def validate(self,attrs):
+        data = super().validate(attrs)
+        refresh = self.get_token(self.user)
+        data['refresh'] = str(refresh)
+        data['access'] = str(refresh.access_token)
+        data['usertype']=self.user.UserType
+        return data
+
 
 
 
@@ -171,6 +194,16 @@ class AbsenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Absence
         fields = ('justified',)
+
+class EtablissementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Etablissement
+        fields = '__all__'
+
+class MaxHeureSupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=MaxHeureSup
+        fields = '__all__'
 
 
 

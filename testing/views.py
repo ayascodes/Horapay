@@ -2,7 +2,7 @@ import secrets
 from django.contrib.auth.tokens import  default_token_generator
 from django.utils.http import urlsafe_base64_decode
 from rest_framework.exceptions import ValidationError, NotFound
-from .emails import send_activation_email, send_reset_password_email
+from .emails import *
 from rest_framework.permissions import AllowAny,IsAdminUser,IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework import generics, status, viewsets
@@ -14,10 +14,22 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 import logging
 import time
+from datetime import datetime, timedelta
+from dateutil.rrule import rrule, DAILY, MONTHLY
+from django.http import HttpResponse
+import locale
+from django.db.models import Q
+from django.contrib.auth import logout
+
+
 # Users CRUD
 class UsersList(generics.ListCreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerialize
+
+    def get_queryset(self):
+        # Filter queryset to include only users with UserType 'enseignant'
+        return CustomUser.objects.filter(UserType='Enseignant')
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -30,6 +42,50 @@ class UsersDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerialize
 
+    def get_queryset(self):
+        # Filter queryset to include only users with UserType 'enseignant'
+        return CustomUser.objects.filter(UserType='Enseignant')
+
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)  # Allow partial updates
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    #adminlist
+class AdminList(generics.ListCreateAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerialize
+
+    def get_queryset(self):
+        # Filter queryset to include only users with UserType admin'
+        return CustomUser.objects.filter(UserType='Admin')
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class AdminDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerialize
+
+    def get_queryset(self):
+        # Filter queryset to include only users with UserType 'admin'
+        return CustomUser.objects.filter(UserType='Admin')
+
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)  # Allow partial updates
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
 # CRUD for exams
 class ExamsList(generics.ListCreateAPIView):
     queryset = Exams.objects.all()
@@ -38,6 +94,13 @@ class ExamsList(generics.ListCreateAPIView):
 class ExamsDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Exams.objects.all()
     serializer_class = ExamsSerializer
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)  # Allow partial updates
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
 # CRUD for vacation
 class VacationList(generics.ListCreateAPIView):
@@ -47,6 +110,13 @@ class VacationList(generics.ListCreateAPIView):
 class VacationDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Vacation.objects.all()
     serializer_class = VacationSerializer
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)  # Allow partial updates
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
 # CRUD for stage
 class StageList(generics.ListCreateAPIView):
@@ -65,15 +135,30 @@ class AbsenceList(generics.ListCreateAPIView):
 class AbsenceDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Absence.objects.all()
     serializer_class = AbsenceSerializer
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)  # Allow partial updates
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
 # CRUD for jourferies
 class JourFeriesList(generics.ListCreateAPIView):
     queryset = JourFeries.objects.all()
     serializer_class = JourFeriesSerializer
 
+
 class JourFeriesDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = JourFeries.objects.all()
     serializer_class = JourFeriesSerializer
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)  # Allow partial updates
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
 # CRUD for report
 class ReportList(generics.ListCreateAPIView):
@@ -83,6 +168,13 @@ class ReportList(generics.ListCreateAPIView):
 class ReportDetail(generics.RetrieveUpdateAPIView):
     queryset = Report.objects.all()
     serializer_class = ReportSerializer
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)  # Allow partial updates
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
 class SemestreList(generics.ListCreateAPIView):
     queryset = Semestre.objects.all()
@@ -91,6 +183,13 @@ class SemestreList(generics.ListCreateAPIView):
 class SemestreDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Semestre.objects.all()
     serializer_class = SemestreSerializer
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)  # Allow partial updates
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
 class DepartementList(generics.ListCreateAPIView):
     queryset = Departement.objects.all()
@@ -99,6 +198,13 @@ class DepartementList(generics.ListCreateAPIView):
 class DepartementDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Departement.objects.all()
     serializer_class = DepartementSerializer
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)  # Allow partial updates
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
 class SpecialiteList(generics.ListCreateAPIView):
     queryset = Specialite.objects.all()
@@ -107,6 +213,13 @@ class SpecialiteList(generics.ListCreateAPIView):
 class SpecialiteDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Specialite.objects.all()
     serializer_class = SpecialiteSerializer
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)  # Allow partial updates
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
 class SalleList(generics.ListCreateAPIView):
     queryset = Salle.objects.all()
@@ -115,15 +228,36 @@ class SalleList(generics.ListCreateAPIView):
 class SalleDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Salle.objects.all()
     serializer_class = SalleSerializer
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)  # Allow partial updates
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
 class PromoList(generics.ListCreateAPIView):
     queryset = Promo.objects.all()
     serializer_class = PromoSerializer
-    serializer_class = PromoSerializer
+
+    def get_queryset(self):
+        queryset = Promo.objects.all()
+        departement_id = self.request.query_params.get('departement')
+        if departement_id:
+            queryset = queryset.filter(departement_id=departement_id)
+        return queryset
 
 class PromoDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Promo.objects.all()
     serializer_class = PromoSerializer
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)  # Allow partial updates
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
 class SectionList(generics.ListCreateAPIView):
     queryset = Section.objects.all()
     serializer_class = SectionSerializer
@@ -131,6 +265,13 @@ class SectionList(generics.ListCreateAPIView):
 class SectionDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Section.objects.all()
     serializer_class = SectionSerializer
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)  # Allow partial updates
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
 class GroupList(generics.ListCreateAPIView):
     queryset = Group.objects.all()
@@ -140,6 +281,13 @@ class GroupDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     serializer_class = GroupSerializer
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)  # Allow partial updates
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
 class ModuleList(generics.ListCreateAPIView):
     queryset = Module.objects.all()
@@ -149,6 +297,13 @@ class ModuleList(generics.ListCreateAPIView):
 class ModuleDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Module.objects.all()
     serializer_class = ModuleSerializer
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)  # Allow partial updates
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 class GradeList(generics.ListCreateAPIView):
     queryset = Grade.objects.all()
     serializer_class = GradeSerializer
@@ -156,6 +311,28 @@ class GradeList(generics.ListCreateAPIView):
 class GradeDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Grade.objects.all()
     serializer_class = GradeSerializer
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)  # Allow partial updates
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+class Type_seanceList(generics.ListCreateAPIView):
+    queryset = Type_seance.objects.all()
+    serializer_class = Type_seanceSerializer
+
+class Type_seanceDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Type_seance.objects.all()
+    serializer_class = Type_seanceSerializer
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)  # Allow partial updates
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
 class WeeklySessionList(generics.ListCreateAPIView):
     queryset = Weekly_session.objects.all()
@@ -164,6 +341,73 @@ class WeeklySessionList(generics.ListCreateAPIView):
 class WeeklySessionDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Weekly_session.objects.all()
     serializer_class = Weekly_sessionserializer
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)  # Allow partial updates
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+class EtablissementList(generics.ListCreateAPIView):
+    queryset = Etablissement.objects.all()
+    serializer_class = EtablissementSerializer
+
+class EtablissementDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Etablissement.objects.all()
+    serializer_class = EtablissementSerializer
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)  # Allow partial updates
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+class MaxHeureSupList(generics.ListCreateAPIView):
+    queryset = MaxHeureSup.objects.all()
+    serializer_class = MaxHeureSupSerializer
+
+class MaxHeureSupDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = MaxHeureSup.objects.all()
+    serializer_class = MaxHeureSupSerializer
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)  # Allow partial updates
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+#auto_completed search by full name
+class CustomUserAutocompleteView(generics.ListAPIView):
+    serializer_class = CustomUserSerialize
+    def get_queryset(self):
+        query = self.request.GET.get('q', '')
+        queryset = CustomUser.objects.filter(full_name__icontains=query)
+        return queryset
+
+
+#filtrage grade sexe
+class CustomUserFilterView(generics.ListAPIView):
+    serializer_class = CustomUserSerialize
+
+    def get_queryset(self):
+        queryset = CustomUser.objects.all()
+
+        grade_id = self.request.GET.get('grade', None)
+        sexe = self.request.GET.get('sexe', None)
+
+        filters = Q()
+
+        if grade_id:
+            filters &= Q(grade__id=grade_id)
+
+        if sexe:
+            filters &= Q(sexe=sexe)
+
+        queryset = queryset.filter(filters)
+        return queryset
 
 
 @api_view(['GET'])
@@ -184,6 +428,8 @@ class AjoutEnseignant(APIView):
               # serializer.save()
                user = serializer.save(password=password)
                user.UserType="Enseignant"
+               user.full_name= f"{user.nom} {user.prenom}"
+               user.is_active=True
                user.save()
                send_activation_email(serializer.data['email'],password)
                return Response({
@@ -213,8 +459,10 @@ class AjoutAdmin(APIView):
                user = serializer.save(password=password)
                user.UserType = "Admin"
                user.is_admin =True
+               user.is_active = True
+               user.full_name = f"{user.nom} {user.prenom}"
                user.save()
-               send_activation_email(serializer.data['email'],password)
+               send_activation_email_admin(serializer.data['email'],password)
                return Response({
                'status':200,
                'message':'votre ajout d\'admin est effectuer avec succes',
@@ -290,9 +538,77 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
 
+class LogoutView(APIView):
+    def post(self, request):
+        try:
+            logout(request)
+            return Response({'detail': 'Successfully logged out.'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
+
+
+
+import locale
+from datetime import datetime, timedelta
+from dateutil.rrule import rrule, DAILY, MONTHLY
+
+class DateRangeView(APIView):
+    def get(self, request):
+        # Set the locale to French
+        locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
+
+        # Define the start and end dates
+        start_date = datetime(2023, 9, 24)
+        end_date = datetime(2024, 1, 31)
+
+        # Generate a list of dates between the start and end dates
+        date_list = [dt.date() for dt in rrule(DAILY, dtstart=start_date, until=end_date)]
+
+        # Build the response data
+        response_data = []
+        current_month = None
+        week_counter = 0
+        week_dates = []
+
+        for date in date_list:
+            month_name = date.strftime('%B')
+
+            if month_name != current_month:
+                if current_month:
+                    self.render_weeks(response_data, week_counter, week_dates)
+                    week_counter = 1
+                    week_dates = []
+                current_month = month_name
+                response_data.append({'month': month_name, 'weeks': []})
+
+            weekday = date.strftime('%A')
+            formatted_date = date.strftime('%d-%m-%Y')
+
+            if weekday == 'dimanche':
+                if week_dates:
+                    week_counter += 1
+                    self.render_weeks(response_data, week_counter, week_dates)
+                    week_dates = []
+                week_counter += 1
+
+            week_dates.append(f'{weekday} {formatted_date}')
+
+            if weekday == 'samedi' or date == end_date.date():
+                self.render_weeks(response_data, week_counter, week_dates)
+                week_dates = []
+
+        return Response(response_data)
+
+    def render_weeks(self, response_data, week_counter, week_dates):
+        if week_dates:
+            week_data = {
+                'week_number': week_counter,
+                'dates': week_dates
+            }
+            response_data[-1]['weeks'].append(week_data)
 
 
 
@@ -309,8 +625,8 @@ class TeacherAbsenceStatsView(APIView):
         data = []
         for teacher in teachers:
             sessions = teacher.session_set.filter(
-                #date__gte=current_semester.start_date,
-                #date__lte=current_semester.end_date
+                date__gte=current_semester.start_date,
+                date__lte=current_semester.end_date
             )
 
             justified_count = sessions.filter(occured=False).filter(absence__justified=True).count()

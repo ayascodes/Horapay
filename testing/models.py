@@ -16,9 +16,15 @@ class UserType(models.Model):
     ]
     Type = models.CharField(max_length=20, choices=TYPE_CHOICES)
 
+
 class Grade(models.Model):
-    nom=models.CharField(max_length=20)
-    prix_heure=models.IntegerField()
+    nom = models.CharField(max_length=20)
+    prix_heure = models.IntegerField()
+    couleur = models.CharField(max_length=50,default=None)
+
+class MaxHeureSup(models.Model):
+    max_charge=models.PositiveIntegerField()
+    max_supp = models.PositiveIntegerField()
 
 
 class CustomUser(AbstractUser):
@@ -47,14 +53,14 @@ class CustomUser(AbstractUser):
     prenom = models.CharField(max_length=20, null=False, default=None)
     email = models.EmailField(unique=True, null=False)
     # mot_de_passe=models.CharField(max_length=8,null=False,default=None)
-    UserType = models.CharField(max_length=20,null=True)
+    UserType = models.CharField(max_length=20, null=True)
     sexe = models.CharField(max_length=10, choices=GENDER_CHOICES, null=False, default='Homme')
     is_admin = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     # fields below are for teacher only
     education = models.CharField(max_length=20, null=True, blank=True)
-    #grade = models.CharField(max_length=50, null=True, blank=True, choices=GRADE_CHOICES)  # needs more costumisaton
-    grade=models.ForeignKey(Grade,on_delete=models.CASCADE,default=None)
+    # grade = models.CharField(max_length=50, null=True, blank=True, choices=GRADE_CHOICES)  # needs more costumisaton
+    grade = models.ForeignKey(Grade, on_delete=models.CASCADE, default=1)
     # date de naissance
     DAYS_CHOICES = [(i, f"{i} days") for i in range(1, 31)]
 
@@ -86,6 +92,8 @@ class CustomUser(AbstractUser):
     reset_password_token = models.CharField(max_length=100, blank=True, null=True)
     charge_actuel = models.IntegerField(null=True)
     heure_sup_actuel = models.IntegerField(null=True)
+    Photo_profil = models.ImageField(upload_to='photo_profil/',blank=True,null=True)
+    full_name = models.CharField(max_length=50,default=None)
     username = None
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -118,6 +126,8 @@ class CustomUser(AbstractUser):
             return f"{self.nom} {self.prenom}, {self.get_grade_display()}"
         else:
             return f"{self.nom} {self.prenom}"
+
+
 
 
 # error_consultation / rapport
@@ -270,7 +280,10 @@ class Module(models.Model):
     def __str__(self):
         return f"{self.nom}"
 
-
+class Type_seance(models.Model):
+    nom = models.CharField(max_length=15)
+    def __str__(self):
+        return f"{self.nom}"
 class Weekly_session(models.Model):
     Day_CHOICES = [
         ('Samedi', 'Samedi'),
@@ -291,24 +304,29 @@ class Weekly_session(models.Model):
     ]
     enseignant = models.ForeignKey(CustomUser, on_delete=models.CASCADE, default=None)
     semestre = models.ForeignKey(Semestre, on_delete=models.CASCADE, default=1)
-    Departement=models.ForeignKey(Departement,on_delete=models.CASCADE,default=1)
-    Promo=models.ForeignKey(Promo,on_delete=models.CASCADE,default=1)
-    Section=models.ForeignKey(Section,on_delete=models.CASCADE,default=1)
+    Departement = models.ForeignKey(Departement, on_delete=models.CASCADE, default=1)
+    Promo = models.ForeignKey(Promo, on_delete=models.CASCADE, default=1)
+    Section = models.ForeignKey(Section, on_delete=models.CASCADE, default=1)
     group = models.ForeignKey(Group, on_delete=models.CASCADE, default=None)
-    pour = models.CharField(max_length=20, choices=POUR_CHOICES, default='Que pour une semaine')
-    date = models.DateField(null=True)
-    jour = models.CharField(max_length=10, choices=Day_CHOICES, default='Dimanche', null=True,blank=True)
-    heure_supp=models.BooleanField(default=False)
-    heure_debut = models.IntegerField()
-    heure_fin = models.IntegerField()
-    module = models.ForeignKey(Module, on_delete=models.CASCADE,default=None)
-    type_session = models.CharField(max_length=10, choices=TYPE_SESSION_CHOICES, default='Cours')
-    salle = models.ForeignKey(Salle, on_delete=models.CASCADE,default=None)
+    selectedOption = models.CharField(max_length=20, choices=POUR_CHOICES, default='Que pour une semaine')
+    #date = models.DateField(null=True)
+    selectedDay = models.CharField(max_length=10, choices=Day_CHOICES, default='Dimanche', null=True, blank=True)
+    heure_supp = models.BooleanField(default=False)
+    heure_debut = models.IntegerField(null=True,blank=True)
+    heure_fin = models.IntegerField(null=True,blank=True)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE, default=None)
+    type_session=models.ForeignKey(Type_seance,on_delete=models.CASCADE,default=None)
+    #type_session = models.CharField(max_length=10, choices=TYPE_SESSION_CHOICES, default='Cours')
+    salle = models.ForeignKey(Salle, on_delete=models.CASCADE, default=None)
 
     def __str__(self):
         return f"weekly {self.type_session} {self.module} {self.enseignant}"
 
-
-
+class Etablissement(models.Model):
+    nom_fr = models.CharField(max_length=100)
+    nom_ar = models.CharField(max_length=100)
+    ministere_fr = models.CharField(max_length=100)
+    ministere_ar = models.CharField(max_length=100)
+    logo = models.ImageField(upload_to='logos/', blank=True, null=True)
 
 
