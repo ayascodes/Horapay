@@ -123,7 +123,7 @@ class CustomUser(AbstractUser):
         if self.is_admin:
             return f"{self.nom} {self.prenom}, admin"
         elif self.grade:
-            return f"{self.nom} {self.prenom}, {self.get_grade_display()}"
+            return f"{self.nom} {self.prenom}"
         else:
             return f"{self.nom} {self.prenom}"
 
@@ -267,7 +267,7 @@ class Group(models.Model):
     numero_du_group = models.IntegerField()
 
     def __str__(self):
-        return f"Group {self.nombre_du_group}-{self.section}-{self.semestre}"
+        return f"Group {self.numero_du_group}-{self.section}"
 
 
 class Module(models.Model):
@@ -303,17 +303,17 @@ class Weekly_session(models.Model):
         ('Pour le semestre', 'Pour le semestre')
     ]
     enseignant = models.ForeignKey(CustomUser, on_delete=models.CASCADE, default=None)
-    semestre = models.ForeignKey(Semestre, on_delete=models.CASCADE, default=1)
+    Semestre = models.ForeignKey(Semestre, on_delete=models.CASCADE, default=1)
     Departement = models.ForeignKey(Departement, on_delete=models.CASCADE, default=1)
     Promo = models.ForeignKey(Promo, on_delete=models.CASCADE, default=1)
     Section = models.ForeignKey(Section, on_delete=models.CASCADE, default=1)
     group = models.ForeignKey(Group, on_delete=models.CASCADE, default=None)
     selectedOption = models.CharField(max_length=20, choices=POUR_CHOICES, default='Que pour une semaine')
     #date = models.DateField(null=True)
-    selectedDay = models.CharField(max_length=10, choices=Day_CHOICES, default='Dimanche', null=True, blank=True)
+    selectedDay = models.CharField(max_length=10, null=True, blank=True)
     heure_supp = models.BooleanField(default=False)
-    heure_debut = models.IntegerField(null=True,blank=True)
-    heure_fin = models.IntegerField(null=True,blank=True)
+    heure_debut = models.CharField(max_length=10,null=True,blank=True)
+    heure_fin = models.CharField(max_length=10,null=True,blank=True)
     module = models.ForeignKey(Module, on_delete=models.CASCADE, default=None)
     type_session=models.ForeignKey(Type_seance,on_delete=models.CASCADE,default=None)
     #type_session = models.CharField(max_length=10, choices=TYPE_SESSION_CHOICES, default='Cours')

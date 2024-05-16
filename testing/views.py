@@ -225,6 +225,13 @@ class SalleList(generics.ListCreateAPIView):
     queryset = Salle.objects.all()
     serializer_class = SalleSerializer
 
+    def get_queryset(self):
+        queryset = Salle.objects.all()
+        departement_id = self.request.query_params.get('departement')
+        if departement_id:
+            queryset = queryset.filter(departement_id=departement_id)
+        return queryset
+
 class SalleDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Salle.objects.all()
     serializer_class = SalleSerializer
@@ -262,6 +269,13 @@ class SectionList(generics.ListCreateAPIView):
     queryset = Section.objects.all()
     serializer_class = SectionSerializer
 
+    def get_queryset(self):
+        queryset = Section.objects.all()
+        promo_id = self.request.query_params.get('promo')
+        if promo_id:
+            queryset = queryset.filter(promo_id=promo_id)
+        return queryset
+
 class SectionDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Section.objects.all()
     serializer_class = SectionSerializer
@@ -276,6 +290,12 @@ class SectionDetail(generics.RetrieveUpdateDestroyAPIView):
 class GroupList(generics.ListCreateAPIView):
     queryset = Group.objects.all()
     serializer_class =GroupSerializer
+    def get_queryset(self):
+        queryset = Group.objects.all()
+        section_id = self.request.query_params.get('section')
+        if section_id:
+            queryset = queryset.filter(section_id=section_id)
+        return queryset
 
 class GroupDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Group.objects.all()
@@ -293,6 +313,16 @@ class ModuleList(generics.ListCreateAPIView):
     queryset = Module.objects.all()
     serializer_class = ModuleSerializer
     serializer_class = ModuleSerializer
+
+    def get_queryset(self):
+        queryset = Module.objects.all()
+        semestre_id = self.request.query_params.get('semestre')
+        promo_id = self.request.query_params.get('promo')
+
+        if semestre_id and promo_id:
+            queryset = queryset.filter(semestre_id=semestre_id, promo_id=promo_id)
+
+        return queryset
 
 class ModuleDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Module.objects.all()
