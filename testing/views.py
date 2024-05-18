@@ -20,6 +20,8 @@ from django.http import HttpResponse
 import locale
 from django.db.models import Q
 from django.contrib.auth import logout
+from django.http import JsonResponse
+from .utils import create_sessions_for_weeks
 
 
 # Users CRUD
@@ -349,6 +351,83 @@ class WeeklySessionDetail(generics.RetrieveUpdateDestroyAPIView):
         self.perform_update(serializer)
         return Response(serializer.data)
 
+
+# this is for algorithm : 
+class SessionCreateView(APIView):
+    def post(self, request, *args, **kwargs):
+        data = request.data.copy()
+        POUR = data.pop('POUR',None)
+        if POUR == 'Que pour une semaine':
+            serializer = ExtraSessionSerializer(data=data)
+            # Your validation and saving process for WeeklySession
+        elif POUR == 'Pour le semestre':
+            serializer = WeeklySessionSerializer(data=data)
+            # Your validation and saving process for ExtraSession
+        else:
+            return Response({"error": "Invalid value for specific_field"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+
+class WeeklySessionDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = weekly_session_new.objects.all()
+    serializer_class = WeeklySessionSerializer
+    lookup_field = 'pk'  # Assuming primary key is used as the lookup field
+
+class ExtraSessionDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = extra_session.objects.all()
+    serializer_class = ExtraSessionSerializer
+    lookup_field = 'pk'  # Assuming primary key is used as the lookup field
+
+class ExtraSessionListView(generics.ListAPIView):
+    queryset = extra_session.objects.all()
+    serializer_class = ExtraSessionSerializer
+
+class WeeklySessionListView(generics.ListAPIView):
+    queryset = weekly_session_new.objects.all()
+    serializer_class = WeeklySessionSerializer  
+
+###############################
+class GenerateSessionsView(APIView):
+    def get(self, request):
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        teacher_id = request.GET.get('teacher_id')
+
+        if not start_date or not end_date or not teacher_id:
+            return JsonResponse({'error': 'Missing parameters'}, status=400)
+
+        create_sessions_for_weeks(start_date, end_date, int(teacher_id))
+        
+        # Retrieve the generated sessions
+        generated_sessions = sessions.objects.filter(enseignant_id=teacher_id, date__range=[start_date, end_date])
+
+        # Serialize the sessions
+        serializer = SessionsSerializer(generated_sessions, many=True)
+        
+        # Return the generated sessions along with the success message
+        return JsonResponse({'status': 'Sessions generated successfully', 'sessions': serializer.data})
+
+ # extra and weekly for a specific teacher id : 
+
+class WeeklySessionForListView(generics.ListAPIView):
+    serializer_class = WeeklySessionSerializer
+
+    def get_queryset(self):
+        teacher_id = self.kwargs.get('teacher_id')
+        return weekly_session_new.objects.filter(enseignant_id=teacher_id)
+
+
+class ExtraSessionForListView(generics.ListAPIView):
+    serializer_class = ExtraSessionSerializer
+
+    def get_queryset(self):
+        teacher_id = self.kwargs.get('teacher_id')
+        return extra_session.objects.filter(enseignant_id=teacher_id)
+########################
 class EtablissementList(generics.ListCreateAPIView):
     queryset = Etablissement.objects.all()
     serializer_class = EtablissementSerializer
