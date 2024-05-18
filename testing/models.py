@@ -325,7 +325,41 @@ class Weekly_session(models.Model):
 
     def __str__(self):
         return f"weekly {self.type_session} {self.module} {self.enseignant}"
+    
+class anysession(models.Model):
+    Day_CHOICES = [
+        ('Samedi', 'Samedi'),
+        ('Dimanche', 'Dimanche'),
+        ('Lundi', 'Lundi'),
+        ('Mardi', 'Mardi'),
+        ('Mercredi', 'Mercredi'),
+        ('Jeudi', 'Jeudi')
+    ]
+    
+    enseignant = models.ForeignKey(CustomUser, on_delete=models.CASCADE, default=None)
+    semestre = models.ForeignKey(Semestre, on_delete=models.CASCADE, default=1)
+    Departement = models.ForeignKey(Departement, on_delete=models.CASCADE, default=1)
+    Promo = models.ForeignKey(Promo, on_delete=models.CASCADE, default=1)
+    Section = models.ForeignKey(Section, on_delete=models.CASCADE, default=1)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, default=None)
+    heure_debut = models.IntegerField(null=True, blank=True)
+    heure_fin = models.IntegerField(null=True, blank=True)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE, default=None)
+    type_session = models.ForeignKey(Type_seance, on_delete=models.CASCADE, default=None)
+    salle = models.ForeignKey(Salle, on_delete=models.CASCADE, default=None)
 
+    class Meta:
+        abstract = True
+
+class weekly_session_new(anysession):
+    selectedDay = models.CharField(max_length=10, choices=anysession.Day_CHOICES, default='Dimanche', null=True, blank=True)
+
+class extra_session(anysession):
+    date = models.DateField(null=True)
+
+class sessions(anysession):
+    selectedDay = models.CharField(max_length=10, choices=anysession.Day_CHOICES, default='Dimanche', null=True, blank=True)
+    date = models.DateField(null=True)
 class Etablissement(models.Model):
     nom_fr = models.CharField(max_length=100)
     nom_ar = models.CharField(max_length=100)

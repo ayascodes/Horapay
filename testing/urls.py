@@ -3,6 +3,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views
 from .views import *
 
+
 urlpatterns = [  
     path('users/', UsersList.as_view(), name='users-list'),
     path('users/<int:pk>', UsersDetail.as_view(), name='users-detail'),
@@ -35,6 +36,16 @@ urlpatterns = [
     path('sections/<int:pk>', SectionDetail.as_view()),
     path('weekly-sessions/', WeeklySessionList.as_view()),
     path('weekly-sessions/<int:pk>', WeeklySessionDetail.as_view()),
+    ##
+    #path('sections/<int:pk>', SectionDetail.as_view()),
+    path('sessions/', SessionCreateView.as_view(), name='session-create'),
+    path('sessions/weekly/<int:pk>/', WeeklySessionDetailView.as_view(), name='weekly-session-detail'),
+    path('sessions/extra/<int:pk>/', ExtraSessionDetailView.as_view(), name='extra-session-detail'),
+    path('sessions/extra/', ExtraSessionListView.as_view(), name='extra-session-list'),
+    path('sessions/weekly/', WeeklySessionListView.as_view(), name='weekly-session-list'),
+    path('generate-sessions/', GenerateSessionsView.as_view(), name='generate-sessions'),
+    path('sessions/extra_for/<int:teacher_id>/', ExtraSessionForListView.as_view(), name='extra-session-list'),
+    path('sessions/weekly_for/<int:teacher_id>/', WeeklySessionForListView.as_view(), name='weekly-session-list'),
     path('Module/', ModuleList.as_view()),
     path('Module/<int:pk>', ModuleDetail.as_view()),
     path('grade/', GradeList.as_view()),

@@ -142,6 +142,22 @@ class Weekly_sessionserializer(serializers.ModelSerializer):
         model = Weekly_session
         fields = '__all__'
 
+# this is for algorithm : 
+class SessionsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = sessions    
+        fields = '__all__'
+
+class WeeklySessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = weekly_session_new
+        fields = '__all__'
+
+class ExtraSessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = extra_session
+        fields = '__all__'
+
 class ResetPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
@@ -173,12 +189,12 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 
-class SessionSerializer(serializers.ModelSerializer):
+""" class SessionSerializer(serializers.ModelSerializer):
     absences = AbsenceSerializer(source='absence_set', read_only=True)  # Nested absence data
 
     class Meta:
         model = Section #there is no session model for now 
-        fields = ('id', 'occured', 'absences')
+        fields = ('id', 'occured', 'absences') """
 
 
 
