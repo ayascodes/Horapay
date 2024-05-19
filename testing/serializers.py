@@ -158,6 +158,11 @@ class ExtraSessionSerializer(serializers.ModelSerializer):
         model = extra_session
         fields = '__all__'
 
+class SetHeureSupSerializer(serializers.Serializer):
+    teacher_id = serializers.IntegerField()
+    start_date = serializers.DateField()
+    end_date = serializers.DateField()
+    
 class ResetPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
 

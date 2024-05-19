@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from .models import weekly_session_new, extra_session, sessions
+from .models import weekly_session_new, extra_session
 
 # Mapping from English day names to French day names
 day_mapping = {
@@ -44,6 +44,7 @@ def dates_with_days_between(start_date, end_date):
     return weeks_list
 
 def create_sessions_for_weeks(start_date, end_date, teacher_id):
+    from .models import sessions
     weeks_with_dates = dates_with_days_between(start_date, end_date)
 
     for week in weeks_with_dates:
