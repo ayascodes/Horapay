@@ -486,33 +486,6 @@ class ExtraSessionForListView(generics.ListAPIView):
     def get_queryset(self):
         teacher_id = self.kwargs.get('teacher_id')
         return extra_session.objects.filter(enseignant_id=teacher_id)
-    
-# set heure sup 
-
-class SetHeureSupView(APIView):
-    def post(self, request):
-        # Extract parameters from request
-        teacher_id = request.data.get('teacher_id')
-        start_date = request.data.get('start_date')
-        end_date = request.data.get('end_date')
-
-        # Validate input
-        if not teacher_id or not start_date or not end_date:
-            return Response({'error': 'Missing required parameters'}, status=status.HTTP_400_BAD_REQUEST)
-         # Initialize charge
-        charge = 0  # You can initialize it to any value you want
-        
-        # Set MAX_CHARGE and unit based on your requirements
-        MAX_CHARGE = 9
-        unit = 1
-        Coef = 1.5
-        # Handle teacher sessions
-        try:
-            all_sessions = sessions.objects.filter(enseignant=teacher_id)
-            sessions.handle_teacher_sessions(teacher_id, all_sessions, start_date, end_date, MAX_CHARGE,Coef, unit)
-            return Response({'message': 'heure_sup set successfully'}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 ########################
 class EtablissementList(generics.ListCreateAPIView):
     queryset = Etablissement.objects.all()
