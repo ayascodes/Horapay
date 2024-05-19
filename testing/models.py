@@ -5,6 +5,9 @@ from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
 from .validators import validate_academic_year_format
 from django.core.exceptions import ValidationError
+from datetime import timedelta
+
+
 
 
 # Create your models here.
@@ -360,6 +363,71 @@ class extra_session(anysession):
 class sessions(anysession):
     selectedDay = models.CharField(max_length=10, choices=anysession.Day_CHOICES, default='Dimanche', null=True, blank=True)
     date = models.DateField(null=True)
+    is_heure_sup = models.BooleanField(default=True)
+    is_partially_heure_sup = models.BooleanField(default=False)
+    charge_duration = models.DurationField(null=True, blank=True)
+    sup_duration = models.DurationField(null=True, blank=True)
+
+    @staticmethod
+    def handle_teacher_sessions(teacher_id, all_sessions, start_date, end_date, MAX_CHARGE, Coef, unit):
+        from .utils import create_sessions_for_weeks, dates_with_days_between
+
+        print(f"Handling teacher sessions for teacher_id: {teacher_id}")
+
+        # Get weeks with dates using the custom logic
+        weeks_with_dates = dates_with_days_between(start_date, end_date)
+
+        # Process each week independently
+        for week in weeks_with_dates:
+            print(f"Processing week: {week}")
+            charge = 0  # Reset charge at the start of each week
+
+            # Create sessions for the current week
+            create_sessions_for_weeks(start_date, end_date, teacher_id)
+
+            # Retrieve sessions for the current week
+            sessions_within_range = all_sessions.filter(date__range=(week[0][0], week[-1][0]))
+
+            # Sort sessions by type
+            sorted_sessions = sessions.sort_sessions_by_type(sessions_within_range)
+
+            # Set heure_sup for the current week
+            sorted_sessions, charge = sessions.set_heure_sup(sorted_sessions, charge, MAX_CHARGE, Coef, unit)
+
+            # Save the updated session objects to the database
+            for session in sorted_sessions:
+                session.save()
+
+            # Print charge and MAX_CHARGE at the end of each week
+            print(f"Charge at the end of week: {charge}")
+            print(f"MAX_CHARGE at the end of week: {MAX_CHARGE}")
+
+    @staticmethod
+    def set_heure_sup(sessions_list, charge, MAX_CHARGE, Coef, unit):
+        print("Setting heure sup for sessions.")
+        MAX_CHARGE = MAX_CHARGE * unit
+        index = 0
+        while index < len(sessions_list) and sessions_list[index].type_session == "cour" and charge < MAX_CHARGE:
+            charge += Coef * unit
+            sessions_list[index].is_heure_sup = False
+            print(f"Session {index} marked as not heure sup.")
+            if (index + 1) < len(sessions_list) and sessions_list[index + 1].type_session == "cour" and charge < MAX_CHARGE:
+                index += 1
+        if charge == MAX_CHARGE:
+            print("Charge reached MAX_CHARGE.")
+        elif charge < MAX_CHARGE:
+            while index < len(sessions_list) and charge < MAX_CHARGE:
+                charge += unit
+                sessions_list[index].is_heure_sup = False
+                print(f"Session {index} marked as not heure sup.")
+                index += 1
+        elif charge > MAX_CHARGE:
+            sessions_list[index].is_partially_heure_sup = True
+            sessions_list[index].is_heure_sup = False
+            print(f"Session {index} marked as partially heure sup.")
+            sessions_list[index].partially_heure_sup(unit, charge - MAX_CHARGE)
+
+        return sessions_list, charge
 class Etablissement(models.Model):
     nom_fr = models.CharField(max_length=100)
     nom_ar = models.CharField(max_length=100)
