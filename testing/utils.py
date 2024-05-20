@@ -185,3 +185,34 @@ def create_sessions_for_weeks(start_date, end_date, teacher_id):
             print(f"Session: {session}, Type: {session.type_session}")
         print("am the sorted list : ",sorted_week_sessions)
         updated_sessions = set_heure_sup(sorted_week_sessions, charge=0, MAX_CHARGE=11, Coef=1.5, unit=1)
+
+
+# input : start_date, end_date, teacher_id | output : charge_duration and sup_duration ( minutes )in this period for this specific teacher
+ 
+def process_sessions_in_date_range(date_debut, date_fin, teacher_id):
+    total_charge_minutes = 0
+    total_sup_minutes = 0
+    # Ensure date_debut and date_fin are datetime objects
+    if isinstance(date_debut, str):
+        date_debut = datetime.strptime(date_debut, '%Y-%m-%d').date()
+    if isinstance(date_fin, str):
+        date_fin = datetime.strptime(date_fin, '%Y-%m-%d').date()
+
+    # Filter sessions within the given date range and for the specific teacher
+    session_list = sessions.objects.filter(date__range=[date_debut, date_fin], enseignant=teacher_id)
+
+    # Process each session
+    for session in session_list:
+        debut_time = datetime.strptime(session.heure_debut, '%H:%M').time()
+        fin_time = datetime.strptime(session.heure_fin, '%H:%M').time()
+        duration_minutes = (fin_time.hour * 60 + fin_time.minute) - (debut_time.hour * 60 + debut_time.minute)
+        if session.is_heure_sup:
+            total_sup_minutes += duration_minutes
+        else:
+            if session.is_partially_heure_sup :
+                total_sup_minutes += session.duration_sup
+                total_charge_minutes += session.duration_charge
+            else:
+                total_charge_minutes += duration_minutes
+
+    return total_charge_minutes, total_sup_minutes
