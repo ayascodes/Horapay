@@ -209,6 +209,20 @@ class DepartementDetail(generics.RetrieveUpdateDestroyAPIView):
 class SpecialiteList(generics.ListCreateAPIView):
     queryset = Specialite.objects.all()
     serializer_class = SpecialiteSerializer
+    def create(self, request, *args, **kwargs):
+        # Check if request data is a list
+        if isinstance(request.data, list):
+            serializer = self.get_serializer(data=request.data, many=True)
+        else:
+            serializer = self.get_serializer(data=[request.data], many=True)
+
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        serializer.save()
 
 class SpecialiteDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Specialite.objects.all()
@@ -231,6 +245,21 @@ class SalleList(generics.ListCreateAPIView):
         if departement_id:
             queryset = queryset.filter(departement_id=departement_id)
         return queryset
+
+    def create(self, request, *args, **kwargs):
+        # Check if request data is a list
+        if isinstance(request.data, list):
+            serializer = self.get_serializer(data=request.data, many=True)
+        else:
+            serializer = self.get_serializer(data=[request.data], many=True)
+
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        serializer.save()
 
 class SalleDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Salle.objects.all()
@@ -378,7 +407,6 @@ class WeeklySessionDetail(generics.RetrieveUpdateDestroyAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)
-
 class EtablissementList(generics.ListCreateAPIView):
     queryset = Etablissement.objects.all()
     serializer_class = EtablissementSerializer
@@ -452,6 +480,13 @@ class AjoutEnseignant(APIView):
    #permission_classes = [IsAuthenticated]
    def post(self, request):
        try:
+          data = request.data.copy()
+          # Handle base64 image data for 'photo_profil'
+          photo_profil_data = data.get('photo_profil')
+          if photo_profil_data:
+              format, imgstr = photo_profil_data.split(';base64,')
+              ext = format.split('/')[-1]
+              data['photo_profil'] = ContentFile(base64.b64decode(imgstr), name=f'temp.{ext}')
           serializer = CustomUserSerialize(data=request.data)
           password = request.data.get('password')
           if serializer.is_valid():
@@ -479,7 +514,6 @@ class AjoutEnseignant(APIView):
                'data': str(e)
            })
 class AjoutAdmin(APIView):
-   #permission_classes = [IsAuthenticated]
    def post(self, request):
        try:
           serializer = CustomUserSerialize(data=request.data)

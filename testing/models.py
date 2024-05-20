@@ -92,13 +92,15 @@ class CustomUser(AbstractUser):
     reset_password_token = models.CharField(max_length=100, blank=True, null=True)
     charge_actuel = models.IntegerField(null=True)
     heure_sup_actuel = models.IntegerField(null=True)
-    Photo_profil = models.ImageField(upload_to='photo_profil/',blank=True,null=True)
+    Photo_profil = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
     full_name = models.CharField(max_length=50,default=None)
     username = None
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
     first_name = None
     last_name = None
+    groups = None
+    user_permissions = None
 
     def clean(self):
 
@@ -221,6 +223,8 @@ class Departement(models.Model):
 
 class Specialite(models.Model):
     nom = models.CharField(max_length=20, default='null')
+    SpecAbrev=models.CharField(max_length=20,default='null')
+
 
     def __str__(self):
         return self.nom
@@ -233,12 +237,11 @@ class Salle(models.Model):
         ('TD', 'Salle Td')
     ]
     departement = models.ForeignKey(Departement, on_delete=models.CASCADE, null=False)
-    type_salle = models.CharField(max_length=20, choices=TYPE_CHOICES, default='Amphitheatre')
-    nom_salle = models.CharField(max_length=50)
-    capacite = models.PositiveIntegerField()
-
+    SalleType = models.CharField(max_length=20, null=True,blank=True)
+    SalleName = models.CharField(max_length=50)
+    SalleCapacity = models.PositiveIntegerField()
     def __str__(self):
-        return f" {self.type_salle} {self.nom_salle} - {self.departement}"
+        return f" {self.SalleType} {self.SalleName} - {self.departement}"
 
 
 class Promo(models.Model):
@@ -284,6 +287,7 @@ class Type_seance(models.Model):
     nom = models.CharField(max_length=15)
     def __str__(self):
         return f"{self.nom}"
+
 class Weekly_session(models.Model):
     Day_CHOICES = [
         ('Samedi', 'Samedi'),
