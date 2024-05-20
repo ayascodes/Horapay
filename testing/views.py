@@ -461,15 +461,11 @@ class GenerateSessionsView(APIView):
 
         create_sessions_for_weeks(start_date, end_date, int(teacher_id))
         
-        # Retrieve the generated sessions
         generated_sessions = sessions.objects.filter(enseignant_id=teacher_id, date__range=[start_date, end_date])
 
-        # Serialize the sessions
         serializer = SessionsSerializer(generated_sessions, many=True)
         
-        # Return the generated sessions along with the success message
         return JsonResponse({'status': 'Sessions generated successfully', 'sessions': serializer.data})
-
  # extra and weekly for a specific teacher id : 
 
 class WeeklySessionForListView(generics.ListAPIView):
@@ -479,6 +475,12 @@ class WeeklySessionForListView(generics.ListAPIView):
         teacher_id = self.kwargs.get('teacher_id')
         return weekly_session_new.objects.filter(enseignant_id=teacher_id)
 
+class WeeklySessionForDetailView(generics.RetrieveUpdateAPIView):
+    serializer_class = WeeklySessionSerializer
+
+    def get_queryset(self):
+        teacher_id = self.kwargs.get('teacher_id')
+        return weekly_session_new.objects.filter(enseignant_id=teacher_id)
 
 class ExtraSessionForListView(generics.ListAPIView):
     serializer_class = ExtraSessionSerializer

@@ -46,6 +46,7 @@ urlpatterns = [
     path('generate-sessions/', GenerateSessionsView.as_view(), name='generate-sessions'),
     path('sessions/extra_for/<int:teacher_id>/', ExtraSessionForListView.as_view(), name='extra-session-list'),
     path('sessions/weekly_for/<int:teacher_id>/', WeeklySessionForListView.as_view(), name='weekly-session-list'),
+    path('sessions/weekly_for/<int:teacher_id>/<int:pk>/', WeeklySessionForDetailView.as_view(), name='weekly-session-detail'),
     path('Module/', ModuleList.as_view()),
     path('Module/<int:pk>', ModuleDetail.as_view()),
     path('grade/', GradeList.as_view()),

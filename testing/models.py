@@ -237,10 +237,11 @@ class Salle(models.Model):
         ('TD', 'Salle Td')
     ]
     departement = models.ForeignKey(Departement, on_delete=models.CASCADE, null=False)
-    SalleType = models.CharField(max_length=20, null=True,blank=True)
+    SalleType = models.CharField(max_length=20, choices=TYPE_CHOICES, default='Amphitheatre')
     SalleName = models.CharField(max_length=50)
     SalleCapacity = models.PositiveIntegerField()
-    def __str__(self):
+
+    def str(self):
         return f" {self.SalleType} {self.SalleName} - {self.departement}"
 
 
@@ -342,8 +343,8 @@ class anysession(models.Model):
     Promo = models.ForeignKey(Promo, on_delete=models.CASCADE, default=1)
     Section = models.ForeignKey(Section, on_delete=models.CASCADE, default=1)
     group = models.ForeignKey(Group, on_delete=models.CASCADE, default=None)
-    heure_debut = models.IntegerField(null=True, blank=True)
-    heure_fin = models.IntegerField(null=True, blank=True)
+    heure_debut = models.CharField(max_length=5, null=True, blank=True)
+    heure_fin = models.CharField(max_length=5, null=True, blank=True)
     module = models.ForeignKey(Module, on_delete=models.CASCADE, default=None)
     type_session = models.ForeignKey(Type_seance, on_delete=models.CASCADE, default=None)
     salle = models.ForeignKey(Salle, on_delete=models.CASCADE, default=None)
@@ -357,9 +358,42 @@ class weekly_session_new(anysession):
 class extra_session(anysession):
     date = models.DateField(null=True)
 
+from datetime import time
+
 class sessions(anysession):
     selectedDay = models.CharField(max_length=10, choices=anysession.Day_CHOICES, default='Dimanche', null=True, blank=True)
     date = models.DateField(null=True)
+    is_heure_sup = models.BooleanField(default=True)
+    is_partially_heure_sup = models.BooleanField(default=False)
+    duration_charge = models.IntegerField(null=True, blank=True)  # Duration in minutes
+    duration_sup = models.IntegerField(null=True, blank=True)  # Duration in minutes
+
+    def __str__(self):
+        return f"session {self.type_session.nom} {self.selectedDay} {self.date}"
+
+    def partially_heure_sup(self, unit, diff_charge):
+        unit_minutes = 60 / unit
+        diff_charge_minute = diff_charge * unit_minutes
+
+        # Parse heure_debut and heure_fin strings to extract hours and minutes
+        heure_debut_hours, heure_debut_minutes = map(int, self.heure_debut.split(':'))
+        heure_fin_hours, heure_fin_minutes = map(int, self.heure_fin.split(':'))
+
+        # Calculate the duration in minutes
+        debut_time = datetime.strptime(self.heure_debut, '%H:%M').time()
+        fin_time = datetime.strptime(self.heure_fin, '%H:%M').time()
+        duration_minutes = (fin_time.hour * 60 + fin_time.minute) - (debut_time.hour * 60 + debut_time.minute)
+
+        # Calculate the part charge in minutes
+        part_charge_minutes = diff_charge_minute
+
+        # Calculate the part of the session that is heure sup in minutes
+        part_heure_sup_minutes = duration_minutes - part_charge_minutes
+
+        # Assign values to the new fields
+        self.duration_charge = part_charge_minutes
+        self.duration_sup = part_heure_sup_minutes
+        self.save()
 class Etablissement(models.Model):
     nom_fr = models.CharField(max_length=100)
     nom_ar = models.CharField(max_length=100)

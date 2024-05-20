@@ -1,6 +1,75 @@
 from datetime import datetime, timedelta
 from .models import weekly_session_new, extra_session, sessions
 
+
+def sort_sessions_by_type(sessions):
+    # Define the order of session types
+    session_type_order = {"Cours": 0, "Td": 1, "Tp": 2}
+    # Define a custom sorting key function
+    def sorting_key(session):
+        return session_type_order.get(session.type_session.nom, float('inf'))
+    print("inside the sort function")
+    for session in sessions:
+        print(f"Session: {session}, Type: {session.type_session.nom}")
+    # Sort the sessions based on their type using the custom sorting key
+    sorted_sessions = sorted(sessions, key=sorting_key)
+    return sorted_sessions
+
+def set_heure_sup(sorted_sessions, charge, MAX_CHARGE, Coef, unit):
+    MAX_CHARGE = MAX_CHARGE * unit
+    index = 0
+    print("ani barra ")
+    print(len(sorted_sessions))
+    print("inside set_heure_sup function")
+    for session in sorted_sessions:
+            print(f"Session: {session}, Type: {session.type_session.nom}")
+    
+    while index < len(sorted_sessions) and sorted_sessions[index].type_session.nom == "Cours" and charge < MAX_CHARGE:
+        print("ani dkhalt ")
+        print("while conditions : ")
+        print(index < len(sorted_sessions))
+        print(sorted_sessions[index].type_session.nom == "Cours")
+        print(charge < MAX_CHARGE)
+        charge += Coef * unit
+        print("charge pour   ",sorted_sessions[index].type_session.nom,":", charge)
+        sorted_sessions[index].is_heure_sup = False
+        sorted_sessions[index].save()
+        #if (index + 1) < len(sorted_sessions) and sorted_sessions[index + 1].type_session.nom == "Cours" and charge < MAX_CHARGE: index += 1
+        index += 1
+        print("index", index)
+    index -= 1
+    print("ani khrejt with   charge : ",charge,"et max charge : ",MAX_CHARGE,"index",index)
+    if charge == MAX_CHARGE:
+        print("charge completed")
+        print("charge : " , charge , " | maxcharge : ",MAX_CHARGE)
+    elif charge < MAX_CHARGE:
+        print("charge < maxcharge")
+        print("charge : " , charge , " | maxcharge : ",MAX_CHARGE)
+        while index < len(sorted_sessions) and charge < MAX_CHARGE:
+            charge += unit
+            sorted_sessions[index].is_heure_sup = False
+            sorted_sessions[index].save()
+            index += 1
+            print(index)
+        print("end of while 2 : charge < maxcharge")
+        print("charge : " , charge , " | maxcharge : ",MAX_CHARGE)
+        if charge == MAX_CHARGE:
+            print("charge completed after while 2 ")
+        elif charge > MAX_CHARGE :
+            sorted_sessions[index].is_partially_heure_sup = True
+            sorted_sessions[index].is_heure_sup = False
+            sorted_sessions[index].partially_heure_sup(unit, charge - MAX_CHARGE)
+            sorted_sessions[index].save()
+    else:
+        print("charge > maxcharge")
+        print("charge : " , charge , " | maxcharge : ",MAX_CHARGE)
+        sorted_sessions[index].is_partially_heure_sup = True
+        sorted_sessions[index].is_heure_sup = False
+        sorted_sessions[index].partially_heure_sup(unit, charge - MAX_CHARGE)
+        sorted_sessions[index].save()
+
+    return sorted_sessions
+
 # Mapping from English day names to French day names
 day_mapping = {
     'Monday': 'Lundi',
@@ -43,20 +112,28 @@ def dates_with_days_between(start_date, end_date):
 
     return weeks_list
 
+def process_week(week):
+    print(f"Processing week with {len(week)} days")
+    for date, day in week:
+        print(f"Date: {date}, Day: {day}")
+
+
 def create_sessions_for_weeks(start_date, end_date, teacher_id):
     weeks_with_dates = dates_with_days_between(start_date, end_date)
-
+    print("from weeks with dates : ",weeks_with_dates)
     for week in weeks_with_dates:
+        process_week(week)  # Placeholder function for additional processing
+
+        week_sessions = []  # Move inside the loop to create sessions for each week
+
         for date, day in week:
             date_dt = datetime.strptime(date, '%Y-%m-%d')
             print(f"Processing date: {date}, day: {day}")
 
-            # Filter weekly sessions for the teacher and the specific day
             weekly_sessions = weekly_session_new.objects.filter(enseignant_id=teacher_id, selectedDay=day)
             print(f"Found {weekly_sessions.count()} weekly sessions for {day} (teacher_id: {teacher_id})")
-
             for ws in weekly_sessions:
-                sessions.objects.create(
+                session = sessions.objects.create(
                     enseignant=ws.enseignant,
                     semestre=ws.semestre,
                     Departement=ws.Departement,
@@ -71,14 +148,14 @@ def create_sessions_for_weeks(start_date, end_date, teacher_id):
                     salle=ws.salle,
                     date=date_dt
                 )
+                week_sessions.append(session)
                 print(f"Created session from weekly session: {ws.id} on {date}")
 
-            # Filter extra sessions for the teacher and the specific date
-            extra_sessions = extra_session.objects.filter(enseignant_id=teacher_id, date=date_dt)
+            extra_sessions = extra_session.objects.filter(enseignant=teacher_id, date=date_dt)
             print(f"Found {extra_sessions.count()} extra sessions for {date} (teacher_id: {teacher_id})")
 
             for es in extra_sessions:
-                sessions.objects.create(
+                session = sessions.objects.create(
                     enseignant=es.enseignant,
                     semestre=es.semestre,
                     Departement=es.Departement,
@@ -93,4 +170,18 @@ def create_sessions_for_weeks(start_date, end_date, teacher_id):
                     salle=es.salle,
                     date=es.date
                 )
+                week_sessions.append(session)
                 print(f"Created session from extra session: {es.id} on {date}")
+            print("inside weekly_sessions : " , week_sessions)
+
+        # Set heure sup for the week
+        print("am the week_sessions : ",week_sessions)
+        print("Before sorting:")
+        for session in week_sessions:
+            print(f"Session: {session}, Type: {session.type_session}")
+        sorted_week_sessions = sort_sessions_by_type(week_sessions)
+        print("After sorting:")
+        for session in sorted_week_sessions:
+            print(f"Session: {session}, Type: {session.type_session}")
+        print("am the sorted list : ",sorted_week_sessions)
+        updated_sessions = set_heure_sup(sorted_week_sessions, charge=0, MAX_CHARGE=11, Coef=1.5, unit=1)
