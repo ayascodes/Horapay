@@ -189,7 +189,7 @@ def create_sessions_for_weeks(start_date, end_date, teacher_id):
 
 # input : start_date, end_date, teacher_id | output : charge_duration and sup_duration ( minutes )in this period for this specific teacher
  
-def process_sessions_in_date_range(date_debut, date_fin, teacher_id):
+def calculate_charge_and_sup(date_debut, date_fin, teacher_id):
     total_charge_minutes = 0
     total_sup_minutes = 0
     # Ensure date_debut and date_fin are datetime objects
