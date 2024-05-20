@@ -47,6 +47,7 @@ urlpatterns = [
     path('sessions/extra_for/<int:teacher_id>/', ExtraSessionForListView.as_view(), name='extra-session-list'),
     path('sessions/weekly_for/<int:teacher_id>/', WeeklySessionForListView.as_view(), name='weekly-session-list'),
     path('sessions/weekly_for/<int:teacher_id>/<int:pk>/', WeeklySessionForDetailView.as_view(), name='weekly-session-detail'),
+    path('calcul_for/<int:teacher_id>/', CalculateChargeSupView.as_view(), name='calculate_charge_sup'),
     path('Module/', ModuleList.as_view()),
     path('Module/<int:pk>', ModuleDetail.as_view()),
     path('grade/', GradeList.as_view()),

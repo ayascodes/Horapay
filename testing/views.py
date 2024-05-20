@@ -21,7 +21,7 @@ import locale
 from django.db.models import Q
 from django.contrib.auth import logout
 from django.http import JsonResponse
-from .utils import create_sessions_for_weeks
+from .utils import create_sessions_for_weeks,calculate_charge_and_sup
 
 
 # Users CRUD
@@ -429,6 +429,25 @@ class ExtraSessionForListView(generics.ListAPIView):
     def get_queryset(self):
         teacher_id = self.kwargs.get('teacher_id')
         return extra_session.objects.filter(enseignant_id=teacher_id)
+    
+#algorithm de calcul :
+class CalculateChargeSupView(APIView): 
+    def get(self, request, teacher_id):
+        date_debut = request.GET.get('date_debut')
+        date_fin = request.GET.get('date_fin')
+
+        if not date_debut or not date_fin:
+            return JsonResponse({'error': 'date_debut and date_fin are required parameters.'}, status=400)
+
+        try:
+            total_charge_minutes, total_sup_minutes = calculate_charge_and_sup(date_debut, date_fin, teacher_id)
+            return Response({
+                'total_charge_minutes': total_charge_minutes,
+                'total_sup_minutes': total_sup_minutes
+            })
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    
 ########################
 class EtablissementList(generics.ListCreateAPIView):
     queryset = Etablissement.objects.all()
