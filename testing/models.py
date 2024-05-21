@@ -394,6 +394,17 @@ class sessions(anysession):
         self.duration_charge = part_charge_minutes
         self.duration_sup = part_heure_sup_minutes
         self.save()
+
+class Week(models.Model):
+    week_number = models.IntegerField()
+    month = models.IntegerField()
+    start_date = models.DateField()
+    end_date = models.DateField()
+    sessions = models.ManyToManyField(sessions)
+    
+    def __str__(self):
+        return f"Week {self.week_number} of month {self.month}"
+    
 class Etablissement(models.Model):
     nom_fr = models.CharField(max_length=100)
     nom_ar = models.CharField(max_length=100)

@@ -506,7 +506,101 @@ class CalculateChargeSupView(APIView):
             })
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
+        
+def get_sessions(request):
+    # Extract parameters from GET request
+    date_debut = request.GET.get('date_debut')
+    date_fin = request.GET.get('date_fin')
+    teacher_id = request.GET.get('teacher_id')
+
+    # Validate parameters
+    if not date_debut or not date_fin or not teacher_id:
+        return JsonResponse({'error': 'Missing parameters'}, status=400)
+
+    # Convert date strings to datetime objects
+    try:
+        date_debut = datetime.strptime(date_debut, '%Y-%m-%d').date()
+        date_fin = datetime.strptime(date_fin, '%Y-%m-%d').date()
+    except ValueError:
+        return JsonResponse({'error': 'Invalid date format. Use YYYY-MM-DD.'}, status=400)
+
+    # Query sessions within the date range for the given teacher
+    session_list = sessions.objects.filter(date__range=[date_debut, date_fin], enseignant_id=teacher_id)
     
+    # Serialize session data
+    session_data = []
+    for session in session_list:
+        session_data.append({
+            'id': session.id,
+            'date': session.date,
+            'selectedDay': session.selectedDay,
+            'heure_debut': session.heure_debut,  # No need to convert to datetime object
+            'heure_fin': session.heure_fin,      # No need to convert to datetime object
+            'module': session.module.nom if session.module else None,
+            'type_session': session.type_session.nom if session.type_session else None,
+            'salle': session.salle.SalleName if session.salle else None,
+            'is_heure_sup': session.is_heure_sup,
+            'is_partially_heure_sup': session.is_partially_heure_sup,
+            'duration_sup': session.duration_sup if session.is_partially_heure_sup else 0,
+            'duration_charge': session.duration_charge if session.is_partially_heure_sup else 0,
+        })
+
+    # Return sessions as JSON response
+    return JsonResponse({'sessions': session_data})
+
+def get_week_with_sessions(request):
+    # Extract parameters from GET request
+    date_debut = request.GET.get('date_debut')
+    date_fin = request.GET.get('date_fin')
+    teacher_id = request.GET.get('teacher_id')
+
+    # Validate parameters
+    if not date_debut or not date_fin or not teacher_id:
+        return JsonResponse({'error': 'Missing parameters'}, status=400)
+
+    # Convert date strings to datetime objects
+    try:
+        date_debut = datetime.strptime(date_debut, '%Y-%m-%d').date()
+        date_fin = datetime.strptime(date_fin, '%Y-%m-%d').date()
+    except ValueError:
+        return JsonResponse({'error': 'Invalid date format. Use YYYY-MM-DD.'}, status=400)
+
+    # Query weeks within the date range
+    weeks_with_sessions = Week.objects.filter(
+        sessions__date__range=[date_debut, date_fin],
+        sessions__enseignant_id=teacher_id,
+        sessions__is_heure_sup=True
+    ).distinct()
+
+    # Serialize week data along with associated sessions
+    week_data = []
+    for week in weeks_with_sessions:
+        session_data = []
+        for session in week.sessions.filter(is_heure_sup=True):
+            session_data.append({
+                'id': session.id,
+                'date': session.date.strftime('%Y-%m-%d'),  # Format date as YYYY-MM-DD
+                'selectedDay': session.selectedDay,
+                'heure_debut': session.heure_debut,  # No need to convert to datetime object
+                'heure_fin': session.heure_fin,      # No need to convert to datetime object
+                'module': session.module.nom if session.module else None,
+                'type_session': session.type_session.nom if session.type_session else None,
+                'salle': session.salle.SalleName if session.salle else None,
+                'is_heure_sup': session.is_heure_sup,
+                'is_partially_heure_sup': session.is_partially_heure_sup,
+                'duration_sup': session.duration_sup if session.is_partially_heure_sup else 0,
+                'duration_charge': session.duration_charge if session.is_partially_heure_sup else 0,
+            })
+        week_data.append({
+            'week_number': week.week_number,
+            'month': week.month,
+            'start_date': week.start_date.strftime('%Y-%m-%d'),  # Format date as YYYY-MM-DD
+            'end_date': week.end_date.strftime('%Y-%m-%d'),      # Format date as YYYY-MM-DD
+            'sessions': session_data,
+        })
+
+    # Return week data with associated sessions as JSON response
+    return JsonResponse({'weeks_with_sessions': week_data})
 ########################
 class EtablissementList(generics.ListCreateAPIView):
     queryset = Etablissement.objects.all()

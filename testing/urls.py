@@ -2,6 +2,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views
 from .views import *
+from .views import get_sessions
 
 
 urlpatterns = [  
@@ -48,6 +49,8 @@ urlpatterns = [
     path('sessions/weekly_for/<int:teacher_id>/', WeeklySessionForListView.as_view(), name='weekly-session-list'),
     path('sessions/weekly_for/<int:teacher_id>/<int:pk>/', WeeklySessionForDetailView.as_view(), name='weekly-session-detail'),
     path('calcul_for/<int:teacher_id>/', CalculateChargeSupView.as_view(), name='calculate_charge_sup'),
+    path('get_sessions/', get_sessions, name='get_sessions'), #this is za3ima 
+    path('get_week_with_sessions/', get_week_with_sessions, name='get_week_with_sessions'),
     path('Module/', ModuleList.as_view()),
     path('Module/<int:pk>', ModuleDetail.as_view()),
     path('grade/', GradeList.as_view()),

@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from .models import weekly_session_new, extra_session, sessions
+from .models import weekly_session_new, extra_session, sessions , Week
 
 
 def sort_sessions_by_type(sessions):
@@ -117,14 +117,17 @@ def process_week(week):
     for date, day in week:
         print(f"Date: {date}, Day: {day}")
 
-
 def create_sessions_for_weeks(start_date, end_date, teacher_id):
     weeks_with_dates = dates_with_days_between(start_date, end_date)
-    print("from weeks with dates : ",weeks_with_dates)
-    for week in weeks_with_dates:
+    print("from weeks with dates : ", weeks_with_dates)
+    for week_index, week in enumerate(weeks_with_dates):
         process_week(week)  # Placeholder function for additional processing
 
         week_sessions = []  # Move inside the loop to create sessions for each week
+        week_start_date = week[0][0]  # Start date of the week
+        week_end_date = week[-1][0]   # End date of the week
+        week_month = datetime.strptime(week_start_date, '%Y-%m-%d').month  # Month of the week
+        week_number = week_index + 1  # Week number
 
         for date, day in week:
             date_dt = datetime.strptime(date, '%Y-%m-%d')
@@ -172,10 +175,10 @@ def create_sessions_for_weeks(start_date, end_date, teacher_id):
                 )
                 week_sessions.append(session)
                 print(f"Created session from extra session: {es.id} on {date}")
-            print("inside weekly_sessions : " , week_sessions)
+            print("inside weekly_sessions : ", week_sessions)
 
         # Set heure sup for the week
-        print("am the week_sessions : ",week_sessions)
+        print("am the week_sessions : ", week_sessions)
         print("Before sorting:")
         for session in week_sessions:
             print(f"Session: {session}, Type: {session.type_session}")
@@ -183,8 +186,19 @@ def create_sessions_for_weeks(start_date, end_date, teacher_id):
         print("After sorting:")
         for session in sorted_week_sessions:
             print(f"Session: {session}, Type: {session.type_session}")
-        print("am the sorted list : ",sorted_week_sessions)
+        print("am the sorted list : ", sorted_week_sessions)
         updated_sessions = set_heure_sup(sorted_week_sessions, charge=0, MAX_CHARGE=11, Coef=1.5, unit=1)
+
+        # Create a Week instance and associate the sessions with it
+        week_instance = Week.objects.create(
+            week_number=week_number,
+            month=week_month,
+            start_date=week_start_date,
+            end_date=week_end_date,
+        )
+        week_instance.sessions.set(updated_sessions)
+        week_instance.save()
+        print(f"Created week: {week_instance}")
 
 
 # input : start_date, end_date, teacher_id | output : charge_duration and sup_duration ( minutes )in this period for this specific teacher
@@ -216,3 +230,13 @@ def calculate_charge_and_sup(date_debut, date_fin, teacher_id):
                 total_charge_minutes += duration_minutes
 
     return total_charge_minutes, total_sup_minutes
+
+
+
+""" 
+those are some sql queries to get a week sessions ( you have to make join cus its one to many relatioshiop)
+##
+SELECT COUNT(*) FROM testing_week_sessions WHERE week_id = 1; 
+##
+SELECT w.id AS week_id, s.id AS session_id, s.date, s.type_session_id FROM testing_week_sessions ws JOIN testing_week w ON w.id = ws.week_id JOIN testing_sessions s ON s.id = ws.sessions_id WHERE w.id = 1;
+"""
