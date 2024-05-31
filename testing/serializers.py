@@ -180,36 +180,12 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['usertype']=self.user.UserType
         return data
 
-
-
-
-
-
-
-
-
-
-""" class SessionSerializer(serializers.ModelSerializer):
-    absences = AbsenceSerializer(source='absence_set', read_only=True)  # Nested absence data
-
-    class Meta:
-        model = Section #there is no session model for now 
-        fields = ('id', 'occured', 'absences') """
-
-
-
 class TeacherSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = '__all__'
 
 
-class AbsenceSerializer(serializers.ModelSerializer):
-    justified = serializers.BooleanField(source='absence.justified', read_only=True)  # Access absence data
-
-    class Meta:
-        model = Absence
-        fields = ('justified',)
 
 class EtablissementSerializer(serializers.ModelSerializer):
     class Meta:
