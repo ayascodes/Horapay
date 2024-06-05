@@ -84,6 +84,32 @@ class SemestreSerializer(serializers.ModelSerializer):
         model = Semestre
         fields = '__all__'
 
+    def validate(self, data):
+        if data['date_debut'] >= data['date_fin']:
+            raise serializers.ValidationError("La date de début doit être antérieure à la date de fin.")
+
+        # Check for unique constraint violation
+        existing_semestre = Semestre.objects.filter(
+            annee_academique=data['annee_academique'],
+            numero_de_semestre=data['numero_de_semestre'],
+            date_debut=data['date_debut'],
+            date_fin=data['date_fin']
+        ).exclude(pk=self.instance.pk if self.instance else None).first()
+
+        if existing_semestre:
+            raise serializers.ValidationError(
+                "Une combinaison identique de l'année académique, numéro de semestre, date de début et date de fin existe déjà.")
+            # Check if more than two semesters are being created for the same academic year
+        existing_semesters_count = Semestre.objects.filter(
+        annee_academique=data['annee_academique']
+        ).exclude(pk=self.instance.pk if self.instance else None).count()
+
+        if existing_semesters_count >= 2:
+           raise serializers.ValidationError(
+            "Vous ne pouvez pas créer plus de deux semestres pour la même année académique.")
+
+        return data
+
 class DepartementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Departement

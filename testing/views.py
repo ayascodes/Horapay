@@ -24,6 +24,8 @@ from django.http import JsonResponse
 from .utils import create_sessions_for_weeks,calculate_charge_and_sup
 from rest_framework import generics, permissions
 from rest_framework.parsers import MultiPartParser, FormParser
+from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import ValidationError as DRFValidationError
 
 
 # Users CRUD
@@ -204,14 +206,16 @@ class SemestreList(generics.ListCreateAPIView):
         else:
             serializer = self.get_serializer(data=[request.data], many=True)
 
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def perform_create(self, serializer):
-        serializer.save()
-
+        def perform_create(self, serializer):
+            serializer.save()
+            
 class SemestreDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Semestre.objects.all()
     serializer_class = SemestreSerializer
@@ -220,8 +224,21 @@ class SemestreDetail(generics.RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        #self.perform_update(serializer)
+        # Update instance and call full_clean
+        for attr, value in serializer.validated_data.items():
+            setattr(instance, attr, value)
+        instance.full_clean()  # This calls the clean method
+        instance.save()
         return Response(serializer.data)
+
+class SemestreCurrentYearList(generics.ListAPIView):
+    serializer_class = SemestreSerializer
+
+    def get_queryset(self):
+        current_year = timezone.now().year
+        current_academic_year = f"{current_year-1}/{current_year}"
+        return Semestre.objects.filter(annee_academique=current_academic_year)
 
 class DepartementList(generics.ListCreateAPIView):
     queryset = Departement.objects.all()

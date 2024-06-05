@@ -218,12 +218,17 @@ class Semestre(models.Model):
 
     class Meta:
         constraints = [
-            UniqueConstraint(fields=['annee_academique', 'numero_de_semestre', 'date_debut','date_fin'], name='unique_Semestre_constraint')
+            UniqueConstraint(fields=['annee_academique', 'numero_de_semestre', 'date_debut', 'date_fin'],
+                             name='unique_Semestre_constraint')
         ]
+
+    def clean(self):
+        if self.date_debut >= self.date_fin:
+            raise ValidationError("La date de début doit être antérieure à la date de fin.")
+        super().clean()
 
     def str(self):
         return f"Semestre {self.numero_de_semestre} - {self.annee_academique}"
-
 class Departement(models.Model):
 
     nom = models.CharField(max_length=20,unique=True, default=None)
