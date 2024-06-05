@@ -6,7 +6,7 @@ from django.contrib.auth.models import AbstractUser
 from .validators import validate_academic_year_format
 from django.core.exceptions import ValidationError
 from django.db.models import UniqueConstraint
-from image_cropping import ImageRatioField
+
 
 
 # Create your models here.
@@ -95,7 +95,6 @@ class CustomUser(AbstractUser):
     charge_actuel = models.IntegerField(null=True)
     heure_sup_actuel = models.IntegerField(null=True)
     Photo_profil = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
-    cropping = ImageRatioField('Photo_profil','300x300')
     full_name = models.CharField(max_length=50,default=None)
     username = None
     USERNAME_FIELD = 'email'
