@@ -35,8 +35,11 @@ urlpatterns = [
     path('Group/<int:pk>', GroupDetail.as_view()),
     path('sections/', SectionList.as_view()),
     path('sections/<int:pk>', SectionDetail.as_view()),
-    path('weekly-sessions/', WeeklySessionList.as_view()),
-    path('weekly-sessions/<int:pk>', WeeklySessionDetail.as_view()),
+    
+    path('ccp-list/', CCPListView.as_view(), name='ccp-list'),
+    path('email-list/',EmailListView.as_view(),name='email-list'),
+    path('Rib-list/', RibListView.as_view(), name='Rib-list'),
+    path('profile-photo/', UserProfilePhotoUploadView.as_view(), name='profile-photo-upload'),
     ##
     #path('sections/<int:pk>', SectionDetail.as_view()),
     path('sessions/', SessionCreateView.as_view(), name='session-create'),
@@ -78,8 +81,6 @@ urlpatterns = [
     #reset_password
     path('reset_password/',ResetPasswordRequestView.as_view(),name='reset_password_request'),
     path('reset-password/<str:token>/', ResetPasswordConfirmView.as_view(), name='reset_password_confirm'),
-    #date en jours
-    path('date-range/', DateRangeView.as_view(), name='date_range'),
 # urls.py
 
 

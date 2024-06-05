@@ -5,6 +5,8 @@ from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
 from .validators import validate_academic_year_format
 from django.core.exceptions import ValidationError
+from django.db.models import UniqueConstraint
+from image_cropping import ImageRatioField
 
 
 # Create your models here.
@@ -18,7 +20,7 @@ class UserType(models.Model):
 
 
 class Grade(models.Model):
-    nom = models.CharField(max_length=20)
+    nom = models.CharField(max_length=20,unique=True)
     prix_heure = models.IntegerField()
     couleur = models.CharField(max_length=50,default=None)
 
@@ -93,6 +95,7 @@ class CustomUser(AbstractUser):
     charge_actuel = models.IntegerField(null=True)
     heure_sup_actuel = models.IntegerField(null=True)
     Photo_profil = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
+    cropping = ImageRatioField('Photo_profil','300x300')
     full_name = models.CharField(max_length=50,default=None)
     username = None
     USERNAME_FIELD = 'email'
@@ -197,25 +200,34 @@ session_instance = Session.objects.create(date='2024-01-01', reason=exams_instan
  """
 
 
+from django.utils import timezone
+import re
+
+
+def validate_academic_year_current(value):
+    current_year = timezone.now().year
+    current_academic_year = f"{current_year-1}/{current_year}"
+
+    if value != current_academic_year:
+        raise ValidationError(f"L'année académique doit être {current_academic_year}.")
+
 class Semestre(models.Model):
-    annee_academique = models.CharField(max_length=9, validators=[validate_academic_year_format])
+    annee_academique = models.CharField(max_length=9, validators=[validate_academic_year_format,validate_academic_year_current])
     numero_de_semestre = models.IntegerField(choices=[(1, '1'), (2, '2')], default=1)
     date_debut = models.DateField()
     date_fin = models.DateField()
 
-    def __str__(self):
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['annee_academique', 'numero_de_semestre', 'date_debut','date_fin'], name='unique_Semestre_constraint')
+        ]
+
+    def str(self):
         return f"Semestre {self.numero_de_semestre} - {self.annee_academique}"
 
-
 class Departement(models.Model):
-    CYCLE_PREPARATOIRE = 'Cycle préparatoire'
-    CYCLE_SUPERIEUR = 'Cycle supérieur'
 
-    CYCLE_CHOICES = [
-        (CYCLE_PREPARATOIRE, 'Cycle préparatoire'),
-        (CYCLE_SUPERIEUR, 'Cycle supérieur')
-    ]
-    nom = models.CharField(max_length=20, choices=CYCLE_CHOICES, default=CYCLE_PREPARATOIRE)
+    nom = models.CharField(max_length=20,unique=True, default=None)
 
     def __str__(self):
         return f"{self.nom}"
@@ -225,6 +237,10 @@ class Specialite(models.Model):
     nom = models.CharField(max_length=20, default='null')
     SpecAbrev=models.CharField(max_length=20,default='null')
 
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=[ 'nom', 'SpecAbrev'], name='unique_Specialite_constraint')
+        ]
 
     def __str__(self):
         return self.nom
@@ -241,6 +257,11 @@ class Salle(models.Model):
     SalleName = models.CharField(max_length=50)
     SalleCapacity = models.PositiveIntegerField()
 
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['departement', 'SalleType', 'SalleName','SalleCapacity'], name='unique_Salle_constraint')
+        ]
+
     def str(self):
         return f" {self.SalleType} {self.SalleName} - {self.departement}"
 
@@ -249,8 +270,22 @@ class Promo(models.Model):
     departement = models.ForeignKey(Departement, on_delete=models.CASCADE, null=False, default=1)
 
     nom = models.CharField(max_length=20, null=True)
-    specialite = models.ForeignKey(Specialite, on_delete=models.CASCADE, null=True)
+    specialite = models.ForeignKey(Specialite, on_delete=models.CASCADE, null=True,blank=True)
+    full_name = models.CharField(max_length=100,null=True)
 
+    def save(self, *args, **kwargs):
+        if self.nom and self.specialite:
+            self.full_name = f"{self.nom}-{self.specialite.SpecAbrev}"
+        elif self.nom:
+            self.full_name = f"{self.nom}"
+        else:
+            self.full_name = None
+        super().save(*args, **kwargs)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['departement', 'nom', 'specialite'], name='unique_promo_constraint')
+        ]
     def __str__(self):
         if self.specialite is None:
             return f"{self.nom} - {self.departement}"
@@ -264,6 +299,11 @@ class Section(models.Model):
 
     def __str__(self):
         return f" Section {self.nom} - {self.promo}"
+    
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['promo', 'nom'], name='unique_Section_constraint')
+        ]
 
 
 class Group(models.Model):
@@ -272,6 +312,11 @@ class Group(models.Model):
 
     def __str__(self):
         return f"Group {self.numero_du_group}-{self.section}"
+    
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['section', 'numero_du_group'], name='unique_Group_constraint')
+        ]
 
 
 class Module(models.Model):
@@ -283,50 +328,18 @@ class Module(models.Model):
 
     def __str__(self):
         return f"{self.nom}"
+    
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['semestre', 'promo', 'nom','credit','coefficient'], name='unique_Module_constraint')
+        ]
 
 class Type_seance(models.Model):
-    nom = models.CharField(max_length=15)
+    nom = models.CharField(max_length=15,unique=True)
     def __str__(self):
         return f"{self.nom}"
 
-class Weekly_session(models.Model):
-    Day_CHOICES = [
-        ('Samedi', 'Samedi'),
-        ('Dimanche', 'Dimanche'),
-        ('Lundi', 'Lundi'),
-        ('Mardi', 'Mardi'),
-        ('Mercredi', 'Mercredi'),
-        ('Jeudi', 'Jeudi')
-    ]
-    TYPE_SESSION_CHOICES = [
-        ('Cours', 'Cours'),
-        ('TD', 'TD'),
-        ('TP', 'TP')
-    ]
-    POUR_CHOICES = [
-        ('Que pour une semaine', 'Que pour une semaine'),
-        ('Pour le semestre', 'Pour le semestre')
-    ]
-    enseignant = models.ForeignKey(CustomUser, on_delete=models.CASCADE, default=None)
-    Semestre = models.ForeignKey(Semestre, on_delete=models.CASCADE, default=1)
-    Departement = models.ForeignKey(Departement, on_delete=models.CASCADE, default=1)
-    Promo = models.ForeignKey(Promo, on_delete=models.CASCADE, default=1)
-    Section = models.ForeignKey(Section, on_delete=models.CASCADE, default=1)
-    group = models.ForeignKey(Group, on_delete=models.CASCADE, default=None)
-    selectedOption = models.CharField(max_length=20, choices=POUR_CHOICES, default='Que pour une semaine')
-    #date = models.DateField(null=True)
-    selectedDay = models.CharField(max_length=10, null=True, blank=True)
-    heure_supp = models.BooleanField(default=False)
-    heure_debut = models.CharField(max_length=10,null=True,blank=True)
-    heure_fin = models.CharField(max_length=10,null=True,blank=True)
-    module = models.ForeignKey(Module, on_delete=models.CASCADE, default=None)
-    type_session=models.ForeignKey(Type_seance,on_delete=models.CASCADE,default=None)
-    #type_session = models.CharField(max_length=10, choices=TYPE_SESSION_CHOICES, default='Cours')
-    salle = models.ForeignKey(Salle, on_delete=models.CASCADE, default=None)
 
-    def __str__(self):
-        return f"weekly {self.type_session} {self.module} {self.enseignant}"
-    
 class anysession(models.Model):
     Day_CHOICES = [
         ('Samedi', 'Samedi'),
@@ -354,9 +367,15 @@ class anysession(models.Model):
 
 class weekly_session_new(anysession):
     selectedDay = models.CharField(max_length=10, choices=anysession.Day_CHOICES, default='Dimanche', null=True, blank=True)
+    
+    class Meta:
+        unique_together = ('enseignant','selectedDay' , 'heure_debut', 'heure_fin', 'type_session')
 
 class extra_session(anysession):
     date = models.DateField(null=True)
+    
+    class Meta:
+        unique_together = ('enseignant', 'date', 'heure_debut', 'heure_fin', 'type_session')
 
 from datetime import time
 
@@ -367,6 +386,9 @@ class sessions(anysession):
     is_partially_heure_sup = models.BooleanField(default=False)
     duration_charge = models.IntegerField(null=True, blank=True)  # Duration in minutes
     duration_sup = models.IntegerField(null=True, blank=True)  # Duration in minutes
+    
+    class Meta:
+        unique_together = ('enseignant', 'date','selectedDay' , 'heure_debut', 'heure_fin', 'type_session')
 
     def __str__(self):
         return f"session {self.type_session.nom} {self.selectedDay} {self.date}"
@@ -385,12 +407,12 @@ class sessions(anysession):
         duration_minutes = (fin_time.hour * 60 + fin_time.minute) - (debut_time.hour * 60 + debut_time.minute)
 
         # Calculate the part charge in minutes
-        part_charge_minutes = diff_charge_minute
+        part_heure_sup_minutes = diff_charge_minute
 
         # Calculate the part of the session that is heure sup in minutes
-        part_heure_sup_minutes = duration_minutes - part_charge_minutes
+        part_charge_minutes = duration_minutes - part_heure_sup_minutes
 
-        # Assign values to the new fields
+        # Assign values to the new fields only for partially heure sup sessions
         self.duration_charge = part_charge_minutes
         self.duration_sup = part_heure_sup_minutes
         self.save()
@@ -399,17 +421,42 @@ class Week(models.Model):
     week_number = models.IntegerField()
     month = models.IntegerField()
     start_date = models.DateField()
-    end_date = models.DateField()
+    end_date = models.DateField()   
     sessions = models.ManyToManyField(sessions)
+    Duration_sup = models.DecimalField(decimal_places=2,max_digits=6,default=0.00)
     
     def __str__(self):
         return f"Week {self.week_number} of month {self.month}"
+    class Meta:
+        unique_together = ('week_number', 'month')
     
+from PIL import Image
+
+
+def validate_image_or_svg(file):
+    valid_image_extensions = ['.jpg', '.jpeg', '.png']
+    valid_svg_extension = '.svg'
+    ext = os.path.splitext(file.name)[1].lower()
+
+    if ext in valid_image_extensions:
+        try:
+            img = Image.open(file)
+            img.verify()
+        except (IOError, SyntaxError):
+            raise ValidationError('Unsupported image file.')
+    elif ext == valid_svg_extension:
+        if not file.read().decode('utf-8').strip().startswith('<svg'):
+            raise ValidationError('Invalid SVG file.')
+    else:
+        raise ValidationError('Unsupported file extension.')
 class Etablissement(models.Model):
     nom_fr = models.CharField(max_length=100)
     nom_ar = models.CharField(max_length=100)
     ministere_fr = models.CharField(max_length=100)
     ministere_ar = models.CharField(max_length=100)
-    logo = models.ImageField(upload_to='logos/', blank=True, null=True)
+    logo = models.FileField(upload_to='logos/', blank=True, null=True, validators=[validate_image_or_svg])
 
-
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['nom_fr', 'nom_ar', 'ministere_fr','ministere_ar','logo'], name='unique_Etablissement_constraint')
+        ]

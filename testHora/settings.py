@@ -92,9 +92,9 @@ WSGI_APPLICATION = 'testHora.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'freedb_HoraPay',
-        'USER':'freedb_HoraPay_group',
-        'PASSWORD' :'WugRmqqe3g@PBmM',
+        'NAME': 'freedb_projet',
+        'USER': 'freedb_projet',
+        'PASSWORD' :'YCuSqw@37KRgjSW',
         'HOST':'sql.freedb.tech',
         'PORT':'3306',
     }

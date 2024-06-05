@@ -22,6 +22,8 @@ from django.db.models import Q
 from django.contrib.auth import logout
 from django.http import JsonResponse
 from .utils import create_sessions_for_weeks,calculate_charge_and_sup
+from rest_framework import generics, permissions
+from rest_framework.parsers import MultiPartParser, FormParser
 
 
 # Users CRUD
@@ -92,6 +94,20 @@ class AdminDetail(generics.RetrieveUpdateDestroyAPIView):
 class ExamsList(generics.ListCreateAPIView):
     queryset = Exams.objects.all()
     serializer_class = ExamsSerializer
+    def create(self, request, *args, **kwargs):
+        # Check if request data is a list
+        if isinstance(request.data, list):
+            serializer = self.get_serializer(data=request.data, many=True)
+        else:
+            serializer = self.get_serializer(data=[request.data], many=True)
+
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        serializer.save()
 
 class ExamsDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Exams.objects.all()
@@ -181,6 +197,20 @@ class ReportDetail(generics.RetrieveUpdateAPIView):
 class SemestreList(generics.ListCreateAPIView):
     queryset = Semestre.objects.all()
     serializer_class = SemestreSerializer
+    def create(self, request, *args, **kwargs):
+        # Check if request data is a list
+        if isinstance(request.data, list):
+            serializer = self.get_serializer(data=request.data, many=True)
+        else:
+            serializer = self.get_serializer(data=[request.data], many=True)
+
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        serializer.save()
 
 class SemestreDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Semestre.objects.all()
@@ -196,6 +226,20 @@ class SemestreDetail(generics.RetrieveUpdateDestroyAPIView):
 class DepartementList(generics.ListCreateAPIView):
     queryset = Departement.objects.all()
     serializer_class = DepartementSerializer
+    def create(self, request, *args, **kwargs):
+        # Check if request data is a list
+        if isinstance(request.data, list):
+            serializer = self.get_serializer(data=request.data, many=True)
+        else:
+            serializer = self.get_serializer(data=[request.data], many=True)
+
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        serializer.save()
 
 class DepartementDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Departement.objects.all()
@@ -284,6 +328,20 @@ class PromoList(generics.ListCreateAPIView):
         if departement_id:
             queryset = queryset.filter(departement_id=departement_id)
         return queryset
+    def create(self, request, *args, **kwargs):
+        # Check if request data is a list
+        if isinstance(request.data, list):
+            serializer = self.get_serializer(data=request.data, many=True)
+        else:
+            serializer = self.get_serializer(data=[request.data], many=True)
+
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        serializer.save()
 
 class PromoDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Promo.objects.all()
@@ -306,6 +364,20 @@ class SectionList(generics.ListCreateAPIView):
         if promo_id:
             queryset = queryset.filter(promo_id=promo_id)
         return queryset
+    def create(self, request, *args, **kwargs):
+        # Check if request data is a list
+        if isinstance(request.data, list):
+            serializer = self.get_serializer(data=request.data, many=True)
+        else:
+            serializer = self.get_serializer(data=[request.data], many=True)
+
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        serializer.save()
 
 class SectionDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Section.objects.all()
@@ -327,6 +399,20 @@ class GroupList(generics.ListCreateAPIView):
         if section_id:
             queryset = queryset.filter(section_id=section_id)
         return queryset
+    def create(self, request, *args, **kwargs):
+        # Check if request data is a list
+        if isinstance(request.data, list):
+            serializer = self.get_serializer(data=request.data, many=True)
+        else:
+            serializer = self.get_serializer(data=[request.data], many=True)
+
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        serializer.save()
 
 class GroupDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Group.objects.all()
@@ -354,6 +440,20 @@ class ModuleList(generics.ListCreateAPIView):
             queryset = queryset.filter(semestre_id=semestre_id, promo_id=promo_id)
 
         return queryset
+    def create(self, request, *args, **kwargs):
+        # Check if request data is a list
+        if isinstance(request.data, list):
+            serializer = self.get_serializer(data=request.data, many=True)
+        else:
+            serializer = self.get_serializer(data=[request.data], many=True)
+
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        serializer.save()
 
 class ModuleDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Module.objects.all()
@@ -368,6 +468,20 @@ class ModuleDetail(generics.RetrieveUpdateDestroyAPIView):
 class GradeList(generics.ListCreateAPIView):
     queryset = Grade.objects.all()
     serializer_class = GradeSerializer
+    def create(self, request, *args, **kwargs):
+        # Check if request data is a list
+        if isinstance(request.data, list):
+            serializer = self.get_serializer(data=request.data, many=True)
+        else:
+            serializer = self.get_serializer(data=[request.data], many=True)
+
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        serializer.save()
 
 class GradeDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Grade.objects.all()
@@ -395,35 +509,45 @@ class Type_seanceDetail(generics.RetrieveUpdateDestroyAPIView):
         self.perform_update(serializer)
         return Response(serializer.data)
 
-class WeeklySessionList(generics.ListCreateAPIView):
-    queryset = Weekly_session.objects.all()
-    serializer_class = Weekly_sessionserializer
 
-class WeeklySessionDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Weekly_session.objects.all()
-    serializer_class = Weekly_sessionserializer
-    def put(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', True)  # Allow partial updates
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data)
+class CCPListView(generics.ListAPIView):
+    queryset = CustomUser.objects.exclude(ccp__isnull=True, cle__isnull=True).values('ccp', 'cle')
+    serializer_class = CCPSerializer
+
+class EmailListView(generics.ListAPIView):
+    queryset = CustomUser.objects.exclude(email__isnull=True).values('email')
+    serializer_class = EmailSerializer
+class RibListView(generics.ListAPIView):
+    queryset = CustomUser.objects.exclude(RIB__isnull=True).values('RIB')
+    serializer_class = RibSerializer
+    
+class UserProfilePhotoUploadView(generics.UpdateAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserProfilePhotoSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get_object(self):
+        user = self.request.user
+        if user.is_anonymous:
+            # Handle anonymous user case, maybe return a dummy user or raise an error
+            raise NotAuthenticated("User is not authenticated")
+        return user
 
 
 # this is for algorithm : 
 class SessionCreateView(APIView):
     def post(self, request, *args, **kwargs):
         data = request.data.copy()
-        POUR = data.pop('POUR',None)
-        if POUR == 'Que pour une semaine':
+        selectedOption = data.pop('selectedOption',None)
+        if selectedOption == 'Que pour une semaine':
             serializer = ExtraSessionSerializer(data=data)
             # Your validation and saving process for WeeklySession
-        elif POUR == 'Pour le semestre':
+        elif selectedOption == 'Pour le semestre':
             serializer = WeeklySessionSerializer(data=data)
             # Your validation and saving process for ExtraSession
         else:
-            return Response({"error": "Invalid value for specific_field"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Invalid value for specific_field"}, status=status.HTTPromo_400_BAD_REQUEST)
 
         if serializer.is_valid():
             serializer.save()
@@ -568,15 +692,26 @@ def get_week_with_sessions(request):
     # Query weeks within the date range
     weeks_with_sessions = Week.objects.filter(
         sessions__date__range=[date_debut, date_fin],
-        sessions__enseignant_id=teacher_id,
-        sessions__is_heure_sup=True
+        sessions__enseignant_id=teacher_id
     ).distinct()
 
     # Serialize week data along with associated sessions
     week_data = []
+    monthly_duration_sup = {}
+    total_duration_sup = 0
+
     for week in weeks_with_sessions:
         session_data = []
-        for session in week.sessions.filter(is_heure_sup=True):
+        week_duration_sup = 0  # Calculate the total duration_sup for the week
+
+        for session in week.sessions.filter(is_heure_sup=True) | week.sessions.filter(is_partially_heure_sup=True):
+            if session.is_heure_sup:
+                # Calculate session duration in hours
+                session_duration = (datetime.strptime(session.heure_fin, '%H:%M') - datetime.strptime(session.heure_debut, '%H:%M')).seconds / 3600
+                week_duration_sup += session_duration
+            elif session.is_partially_heure_sup:
+                week_duration_sup += session.duration_sup / 60  # Convert minutes to hours
+
             session_data.append({
                 'id': session.id,
                 'date': session.date.strftime('%Y-%m-%d'),  # Format date as YYYY-MM-DD
@@ -591,16 +726,37 @@ def get_week_with_sessions(request):
                 'duration_sup': session.duration_sup if session.is_partially_heure_sup else 0,
                 'duration_charge': session.duration_charge if session.is_partially_heure_sup else 0,
             })
+
         week_data.append({
             'week_number': week.week_number,
             'month': week.month,
             'start_date': week.start_date.strftime('%Y-%m-%d'),  # Format date as YYYY-MM-DD
             'end_date': week.end_date.strftime('%Y-%m-%d'),      # Format date as YYYY-MM-DD
+            'Duration_sup': round(week_duration_sup, 2),  # Round to 2 decimal places
             'sessions': session_data,
         })
 
+        # Accumulate monthly_duration_sup
+        if week.month in monthly_duration_sup:
+            monthly_duration_sup[week.month] += week_duration_sup
+        else:
+            monthly_duration_sup[week.month] = week_duration_sup
+
+        # Accumulate total_duration_sup
+        total_duration_sup += week_duration_sup
+
+    # Prepare response
+    response_data = {
+        'weeks_with_sessions': week_data,
+        'monthly_duration_sup': {month: round(duration, 2) for month, duration in monthly_duration_sup.items()},
+        'total_duration_sup': round(total_duration_sup, 2)
+    }
+
     # Return week data with associated sessions as JSON response
-    return JsonResponse({'weeks_with_sessions': week_data})
+    return JsonResponse(response_data)
+
+
+
 ########################
 class EtablissementList(generics.ListCreateAPIView):
     queryset = Etablissement.objects.all()
@@ -804,99 +960,3 @@ class LogoutView(APIView):
             return Response({'detail': 'Successfully logged out.'}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-
-
-import locale
-from datetime import datetime, timedelta
-from dateutil.rrule import rrule, DAILY, MONTHLY
-
-
-class DateRangeView(APIView):
-    def get(self, request):
-        # Set the locale to French
-        locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
-
-        # Define the start and end dates
-        start_date = datetime(2023, 9, 24)
-        end_date = datetime(2024, 1, 31)
-
-        # Generate a list of dates between the start and end dates
-        date_list = [dt.date() for dt in rrule(DAILY, dtstart=start_date, until=end_date)]
-
-        # Build the response data
-        response_data = []
-        current_month = None
-        week_counter = 0
-        week_dates = []
-
-        for date in date_list:
-            month_name = date.strftime('%B')
-
-            if month_name != current_month:
-                if current_month:
-                    self.render_weeks(response_data, week_counter, week_dates)
-                    week_counter = 1
-                    week_dates = []
-                current_month = month_name
-                response_data.append({'month': month_name, 'weeks': []})
-
-            weekday = date.strftime('%A')
-            formatted_date = date.strftime('%d-%m-%Y')
-
-            if weekday == 'dimanche':
-                if week_dates:
-                    week_counter += 1
-                    self.render_weeks(response_data, week_counter, week_dates)
-                    week_dates = []
-                week_counter += 1
-
-            week_dates.append(f'{weekday} {formatted_date}')
-
-            if weekday == 'samedi' or date == end_date.date():
-                self.render_weeks(response_data, week_counter, week_dates)
-                week_dates = []
-
-        return Response(response_data)
-
-    def render_weeks(self, response_data, week_counter, week_dates):
-        if week_dates:
-            week_data = {
-                'week_number': week_counter,
-                'dates': week_dates
-            }
-            response_data[-1]['weeks'].append(week_data)
-
-
-
-
-
-
-
-
-
-
-class TeacherAbsenceStatsView(APIView):
-    def get(self, request):
-        teachers = CustomUser.objects.all()
-        data = []
-        for teacher in teachers:
-            sessions = teacher.session_set.filter(
-                date__gte=current_semester.start_date,
-                date__lte=current_semester.end_date
-            )
-
-            justified_count = sessions.filter(occured=False).filter(absence__justified=True).count()
-            unjustified_count = sessions.filter(occured=False).filter(absence__justified=False).count()
-            teacher_data = {
-                'id': teacher.id,
-                'name': teacher.name,
-                'justified_absences': justified_count,
-                'unjustified_absences': unjustified_count,
-            }
-        data.append(teacher_data)
-        return Response(data)
-

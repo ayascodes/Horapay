@@ -105,6 +105,19 @@ class PromoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Promo
         fields = '__all__'
+    def create(self, validated_data):
+        print("Inside create method")
+        instance = Promo(**validated_data)
+        instance.save()
+        return instance
+
+    def update(self, instance, validated_data):
+        print("Inside update method")
+        instance.nom = validated_data.get('nom', instance.nom)
+        instance.specialite = validated_data.get('specialite', instance.specialite)
+        instance.departement = validated_data.get('departement', instance.departement)
+        instance.save()
+        return instance
 
 
 class SectionSerializer(serializers.ModelSerializer):
@@ -137,10 +150,7 @@ class EmailVerificationSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ['token']
 
-class Weekly_sessionserializer(serializers.ModelSerializer):
-    class Meta:
-        model = Weekly_session
-        fields = '__all__'
+
 
 # this is for algorithm : 
 class SessionsSerializer(serializers.ModelSerializer):
@@ -160,6 +170,19 @@ class ExtraSessionSerializer(serializers.ModelSerializer):
 
 class ResetPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
+    
+class CCPSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['ccp', 'cle']
+class EmailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['email']
+class RibSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['RIB']
 
 
 
@@ -192,12 +215,21 @@ class EtablissementSerializer(serializers.ModelSerializer):
         model = Etablissement
         fields = '__all__'
 
+    def to_internal_value(self, data):
+        try:
+            return super().to_internal_value(data)
+        except ValidationError as e:
+            raise serializers.ValidationError(e.message_dict)
+
 class MaxHeureSupSerializer(serializers.ModelSerializer):
     class Meta:
         model=MaxHeureSup
         fields = '__all__'
 
 
+class UserProfilePhotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['Photo_profil']
 
-# note : i forgot the reason table the father of absence, need to be fixed to the actual models
 

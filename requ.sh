@@ -9,4 +9,5 @@ pip install psycopg2
 pip install djangorestframework-simplejwt
 pip install django-cors-headers
 pip install django-seed
+pip install pillow
 echo "Aya ! i'am done"
