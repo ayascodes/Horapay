@@ -247,11 +247,17 @@ class EtablissementSerializer(serializers.ModelSerializer):
         except ValidationError as e:
             raise serializers.ValidationError(e.message_dict)
 
-class MaxHeureSupSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=MaxHeureSup
-        fields = '__all__'
+class InfoHeureSupSerializer(serializers.ModelSerializer):
+    coef = serializers.SerializerMethodField()
 
+    class Meta:
+        model = InfoHeureSup
+        fields = ['id', 'max_charge_cours', 'max_charge_td', 'coef']
+
+    def get_coef(self, obj):
+        if obj.max_charge_cours != 0:
+            return round(obj.max_charge_td / obj.max_charge_cours, 2)
+        return None
 
 class UserProfilePhotoSerializer(serializers.ModelSerializer):
     class Meta:

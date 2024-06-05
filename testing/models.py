@@ -24,9 +24,10 @@ class Grade(models.Model):
     prix_heure = models.IntegerField()
     couleur = models.CharField(max_length=50,default=None)
 
-class MaxHeureSup(models.Model):
-    max_charge=models.PositiveIntegerField()
-    max_supp = models.PositiveIntegerField()
+class InfoHeureSup(models.Model):
+    max_charge_cours=models.PositiveIntegerField()
+    max_charge_td=models.PositiveIntegerField()
+    Coef=models.DecimalField(decimal_places=2,max_digits=5,default=0.00,null=True,blank=True)
 
 
 class CustomUser(AbstractUser):

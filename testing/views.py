@@ -215,7 +215,7 @@ class SemestreList(generics.ListCreateAPIView):
 
         def perform_create(self, serializer):
             serializer.save()
-            
+
 class SemestreDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Semestre.objects.all()
     serializer_class = SemestreSerializer
@@ -790,13 +790,14 @@ class EtablissementDetail(generics.RetrieveUpdateDestroyAPIView):
         self.perform_update(serializer)
         return Response(serializer.data)
 
-class MaxHeureSupList(generics.ListCreateAPIView):
-    queryset = MaxHeureSup.objects.all()
-    serializer_class = MaxHeureSupSerializer
+class InfoHeureSupList(generics.ListCreateAPIView):
+    queryset = InfoHeureSup.objects.all()
+    serializer_class = InfoHeureSupSerializer
 
-class MaxHeureSupDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = MaxHeureSup.objects.all()
-    serializer_class = MaxHeureSupSerializer
+class InfoHeureSupDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = InfoHeureSup.objects.all()
+    serializer_class = InfoHeureSupSerializer
+
     def put(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', True)  # Allow partial updates
         instance = self.get_object()
